@@ -273,20 +273,30 @@ class MaestroSolver:
             rng = np.random.default_rng(42)
             x0 = rng.uniform(-np.pi / 4, np.pi / 4, size=n_params)
 
-        # --- Optimise ---
-        opts: dict = {"maxiter": self.maxiter}
-        if self.optimizer.upper() == "COBYLA":
-            opts["rhobeg"] = 0.3
+        # --- Pre-computed amplitudes mode (skip VQE) ---
+        if self.maxiter == 0 and self.initial_point is not None:
+            if self.verbose:
+                print("  [MaestroSolver] maxiter=0 — using pre-computed amplitudes (no VQE)")
+            self.optimal_params = x0
+            e_vqe = cost(x0)
+            self.converged = True
+            self.vqe_time = 0.0
+        else:
+            # --- Optimise ---
+            opts: dict = {"maxiter": self.maxiter}
+            if self.optimizer.upper() == "COBYLA":
+                opts["rhobeg"] = 0.3
 
-        t0 = time.perf_counter()
-        opt = minimize(
-            cost, x0,
-            method=self.optimizer,
-            options=opts,
-        )
-        self.vqe_time = time.perf_counter() - t0
-        self.converged = opt.success
-        self.optimal_params = opt.x
+            t0 = time.perf_counter()
+            opt = minimize(
+                cost, x0,
+                method=self.optimizer,
+                options=opts,
+            )
+            self.vqe_time = time.perf_counter() - t0
+            self.converged = opt.success
+            self.optimal_params = opt.x
+            e_vqe = opt.fun
 
         # --- Build the final optimised circuit (for RDM reconstruction) ---
         if self.ansatz == "uccsd":
@@ -303,11 +313,11 @@ class MaestroSolver:
                 include_hf=True, nelec=self._nelec,
             )
 
-        e_tot = opt.fun + ecore
+        e_tot = e_vqe + ecore
 
         if self.verbose:
             print(f"  [MaestroSolver] Converged : {self.converged}")
-            print(f"  [MaestroSolver] E(VQE)    : {opt.fun:+.10f}")
+            print(f"  [MaestroSolver] E(VQE)    : {e_vqe:+.10f}")
             print(f"  [MaestroSolver] E(total)  : {e_tot:+.10f}")
             print(f"  [MaestroSolver] Time      : {self.vqe_time:.2f}s")
 

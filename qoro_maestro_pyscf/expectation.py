@@ -104,3 +104,70 @@ def compute_energy(
     # Coefficients are real for a Hermitian Hamiltonian (physical observable).
     # We use .real to drop any floating-point imaginary noise from OpenFermion.
     return identity_offset + float(np.dot(pauli_coeffs.real, exp_vals))
+
+
+def get_state_probabilities(
+    circuit: QuantumCircuit,
+    config: BackendConfig,
+) -> np.ndarray:
+    """
+    Get the full probability distribution |⟨k|ψ⟩|² for each computational basis state.
+
+    Wraps Maestro's native ``get_probabilities()`` with the configured backend.
+
+    Parameters
+    ----------
+    circuit : QuantumCircuit
+        The prepared circuit.
+    config : BackendConfig
+        Maestro backend configuration.
+
+    Returns
+    -------
+    probabilities : np.ndarray, shape (2**n_qubits,)
+        Probability of each computational basis state.
+    """
+    import maestro
+
+    kwargs = {
+        "simulator_type": config.simulator_type,
+        "simulation_type": config.simulation_type,
+    }
+    if config.mps_bond_dim is not None:
+        kwargs["max_bond_dimension"] = config.mps_bond_dim
+
+    probs = maestro.get_probabilities(circuit, **kwargs)
+    return np.array(probs, dtype=float)
+
+
+def compute_state_fidelity(
+    circuit_a: QuantumCircuit,
+    circuit_b: QuantumCircuit,
+    config: BackendConfig,
+) -> float:
+    """
+    Compute the classical fidelity between two circuit states.
+
+    Uses the Bhattacharyya coefficient: F = (Σ √(pᵢ·qᵢ))², which equals
+    the true quantum fidelity |⟨ψ_a|ψ_b⟩|² when both states are pure and
+    have non-negative real amplitudes (common for VQE ground states).
+
+    For general states with complex phases, this is a lower bound on the
+    true fidelity.
+
+    Parameters
+    ----------
+    circuit_a, circuit_b : QuantumCircuit
+        The two circuits to compare.
+    config : BackendConfig
+        Maestro backend configuration.
+
+    Returns
+    -------
+    fidelity : float
+        Classical fidelity in [0, 1].  1.0 = identical probability distributions.
+    """
+    p = get_state_probabilities(circuit_a, config)
+    q = get_state_probabilities(circuit_b, config)
+    bhatt = float(np.sum(np.sqrt(p * q)))
+    return bhatt ** 2
