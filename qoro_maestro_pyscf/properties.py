@@ -59,7 +59,6 @@ def compute_dipole_moment(
     nuc_dipole = np.einsum("i,ix->x", charges, coords)
 
     # Electronic contribution: expand active-space RDM to full AO basis
-    nao = mo_coeff.shape[0]
     norb = rdm1.shape[0]
     nmo = mo_coeff.shape[1]
 

@@ -92,14 +92,20 @@ def integrals_to_qubit_hamiltonian(
         h1_b = h1  # RHF: alpha = beta
 
     if isinstance(h2, tuple):
+        import warnings
+        warnings.warn(
+            "UHF two-electron integrals detected. The spin-block mapping "
+            "(αα, ββ, αβ) has not been thoroughly validated — results should "
+            "be cross-checked against a reference FCI calculation.",
+            stacklevel=2,
+        )
         h2_aa = _restore_eri(h2[0], norb)
         h2_ab = _restore_eri(h2[1], norb)
         h2_bb = _restore_eri(h2[2], norb)
     else:
-        h2_full = _restore_eri(h2, norb)
-        h2_aa = h2_full
-        h2_ab = h2_full
-        h2_bb = h2_full  # RHF: all spin blocks are the same
+        h2_aa = _restore_eri(h2, norb)
+        h2_ab = h2_aa  # RHF: all spin blocks identical
+        h2_bb = h2_aa
 
     # --- Build spin-orbital one-body tensor ---
     one_body = np.zeros((n_qubits, n_qubits))
@@ -124,15 +130,14 @@ def integrals_to_qubit_hamiltonian(
         for q in range(norb):
             for r in range(norb):
                 for s in range(norb):
-                    val = 0.5 * h2_aa[p, s, r, q]
                     # αα
-                    two_body[2*p, 2*q, 2*r, 2*s] = val
+                    two_body[2*p, 2*q, 2*r, 2*s] = 0.5 * h2_aa[p, s, r, q]
                     # ββ
-                    two_body[2*p+1, 2*q+1, 2*r+1, 2*s+1] = val
+                    two_body[2*p+1, 2*q+1, 2*r+1, 2*s+1] = 0.5 * h2_bb[p, s, r, q]
                     # αβ
-                    two_body[2*p, 2*q+1, 2*r+1, 2*s] = val
+                    two_body[2*p, 2*q+1, 2*r+1, 2*s] = 0.5 * h2_ab[p, s, r, q]
                     # βα
-                    two_body[2*p+1, 2*q, 2*r, 2*s+1] = val
+                    two_body[2*p+1, 2*q, 2*r, 2*s+1] = 0.5 * h2_ab[r, q, p, s]
 
     # --- Build InteractionOperator and apply Jordan-Wigner ---
     iop = InteractionOperator(
