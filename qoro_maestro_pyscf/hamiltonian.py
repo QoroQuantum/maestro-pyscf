@@ -28,6 +28,7 @@ from __future__ import annotations
 from typing import Union
 
 import numpy as np
+from pyscf import ao2mo
 
 from openfermion import InteractionOperator, QubitOperator, jordan_wigner
 
@@ -35,6 +36,23 @@ from openfermion import InteractionOperator, QubitOperator, jordan_wigner
 # Type aliases matching PySCF's calling convention
 OneBodyIntegrals = Union[np.ndarray, tuple[np.ndarray, np.ndarray]]
 TwoBodyIntegrals = Union[np.ndarray, tuple[np.ndarray, np.ndarray, np.ndarray]]
+
+
+def _restore_eri(eri: np.ndarray, norb: int) -> np.ndarray:
+    """
+    Restore two-electron integrals to a full 4D tensor.
+
+    PySCF's CASCI/CASSCF kernel passes ERIs in compressed formats:
+      - 1D array of length norb*(norb+1)/2 * (norb*(norb+1)/2+1)/2 (8-fold)
+      - 2D array of shape (norb*(norb+1)//2, norb*(norb+1)//2) (4-fold)
+      - Already 4D (norb, norb, norb, norb)
+
+    We always need the full (norb, norb, norb, norb) tensor.
+    """
+    if eri.ndim == 4:
+        return eri
+    # ao2mo.restore(1, ...) restores any compressed format to full 4D
+    return ao2mo.restore(1, eri, norb)
 
 
 def integrals_to_qubit_hamiltonian(
@@ -55,8 +73,8 @@ def integrals_to_qubit_hamiltonian(
         One-electron integrals. Single array for RHF; tuple (h1_a, h1_b)
         for UHF.
     h2 : ndarray or (ndarray, ndarray, ndarray)
-        Two-electron integrals in chemist's notation. Single array for RHF;
-        tuple (h2_aa, h2_ab, h2_bb) for UHF.
+        Two-electron integrals in chemist's notation (possibly compressed).
+        Single array for RHF; tuple (h2_aa, h2_ab, h2_bb) for UHF.
     norb : int
         Number of spatial orbitals.
 
@@ -77,11 +95,14 @@ def integrals_to_qubit_hamiltonian(
         h1_b = h1  # RHF: alpha = beta
 
     if isinstance(h2, tuple):
-        h2_aa, h2_ab, h2_bb = h2
+        h2_aa = _restore_eri(h2[0], norb)
+        h2_ab = _restore_eri(h2[1], norb)
+        h2_bb = _restore_eri(h2[2], norb)
     else:
-        h2_aa = h2
-        h2_ab = h2
-        h2_bb = h2  # RHF: all spin blocks are the same
+        h2_full = _restore_eri(h2, norb)
+        h2_aa = h2_full
+        h2_ab = h2_full
+        h2_bb = h2_full  # RHF: all spin blocks are the same
 
     # --- Build spin-orbital one-body tensor ---
     one_body = np.zeros((n_qubits, n_qubits))
