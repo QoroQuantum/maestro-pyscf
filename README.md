@@ -107,4 +107,4 @@ See the [examples/](examples/) directory for 8 worked examples and a full workfl
 
 ## License
 
-GPL-3.0 (same as Maestro)
+Apache 2.0 — see [LICENSE](LICENSE) for details.
