@@ -83,16 +83,19 @@ class TestAnsatzeUnit:
             assert i in occ
             assert a in vir
 
+    @pytest.mark.skipif(not _has_maestro(), reason="Requires maestro native library")
     def test_hf_circuit_builds(self):
         from qoro_maestro_pyscf.ansatze import hartree_fock_circuit
         qc = hartree_fock_circuit(4, (1, 1))
         assert qc is not None
 
+    @pytest.mark.skipif(not _has_maestro(), reason="Requires maestro native library")
     def test_hf_circuit_int_nelec(self):
         from qoro_maestro_pyscf.ansatze import hartree_fock_circuit
         qc = hartree_fock_circuit(4, 2)
         assert qc is not None
 
+    @pytest.mark.skipif(not _has_maestro(), reason="Requires maestro native library")
     def test_hardware_efficient_builds(self):
         from qoro_maestro_pyscf.ansatze import (
             hardware_efficient_ansatz,
@@ -104,6 +107,7 @@ class TestAnsatzeUnit:
         qc = hardware_efficient_ansatz(params, n_qubits, n_layers)
         assert qc is not None
 
+    @pytest.mark.skipif(not _has_maestro(), reason="Requires maestro native library")
     def test_hardware_efficient_with_hf(self):
         from qoro_maestro_pyscf.ansatze import (
             hardware_efficient_ansatz,
@@ -117,11 +121,13 @@ class TestAnsatzeUnit:
         )
         assert qc is not None
 
+    @pytest.mark.skipif(not _has_maestro(), reason="Requires maestro native library")
     def test_hardware_efficient_hf_requires_nelec(self):
         from qoro_maestro_pyscf.ansatze import hardware_efficient_ansatz
         with pytest.raises(ValueError, match="nelec is required"):
             hardware_efficient_ansatz(np.zeros(8), 2, 2, include_hf=True)
 
+    @pytest.mark.skipif(not _has_maestro(), reason="Requires maestro native library")
     def test_uccsd_builds(self):
         from qoro_maestro_pyscf.ansatze import uccsd_ansatz, uccsd_param_count
         n_qubits = 4
@@ -131,6 +137,7 @@ class TestAnsatzeUnit:
         qc = uccsd_ansatz(params, n_qubits, nelec)
         assert qc is not None
 
+    @pytest.mark.skipif(not _has_maestro(), reason="Requires maestro native library")
     def test_uccsd_with_int_nelec(self):
         from qoro_maestro_pyscf.ansatze import uccsd_ansatz, uccsd_param_count
         n_params = uccsd_param_count(4, 2)
