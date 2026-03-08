@@ -34,12 +34,13 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import numpy as np
 from scipy.optimize import minimize
 
-from maestro.circuits import QuantumCircuit
+if TYPE_CHECKING:
+    from maestro.circuits import QuantumCircuit
 
 from qoro_maestro_pyscf.backends import BackendConfig, configure_backend
 from qoro_maestro_pyscf.hamiltonian import (

@@ -21,9 +21,12 @@ function without worrying about backend configuration details.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
-from maestro.circuits import QuantumCircuit
+if TYPE_CHECKING:
+    from maestro.circuits import QuantumCircuit
 
 from qoro_maestro_pyscf.backends import BackendConfig
 

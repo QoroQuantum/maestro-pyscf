@@ -38,7 +38,11 @@ from __future__ import annotations
 
 import numpy as np
 
-from maestro.circuits import QuantumCircuit
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from maestro.circuits import QuantumCircuit
+
 from openfermion import FermionOperator, jordan_wigner
 
 from qoro_maestro_pyscf.backends import BackendConfig

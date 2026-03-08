@@ -25,9 +25,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
-
-import maestro
+from typing import Any, Optional
 
 
 class SimulationMode(str, Enum):
@@ -52,8 +50,8 @@ class BackendConfig:
     mps_bond_dim : int or None
         Bond dimension for MPS simulation (ignored for Statevector).
     """
-    simulator_type: maestro.SimulatorType
-    simulation_type: maestro.SimulationType
+    simulator_type: Any  # maestro.SimulatorType
+    simulation_type: Any  # maestro.SimulationType
     label: str
     mps_bond_dim: Optional[int] = None
 
@@ -138,6 +136,8 @@ def configure_backend(
         set_license_key(license_key)
 
     # --- Resolve simulation type ---
+    import maestro
+
     mode = SimulationMode(simulation.lower())
 
     if mode == SimulationMode.MPS:

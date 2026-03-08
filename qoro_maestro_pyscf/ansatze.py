@@ -21,11 +21,20 @@ string intermediary.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import itertools
 
 import numpy as np
 
-from maestro.circuits import QuantumCircuit
+if TYPE_CHECKING:
+    from maestro.circuits import QuantumCircuit
+
+
+def _QC() -> QuantumCircuit:
+    """Lazy-import QuantumCircuit to avoid top-level libmaestro.so dependency."""
+    from maestro.circuits import QuantumCircuit as _QC_cls
+    return _QC_cls()
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -59,7 +68,7 @@ def hartree_fock_circuit(n_qubits: int, nelec: int | tuple[int, int]) -> Quantum
         n_beta = nelec // 2
         n_alpha = nelec - n_beta
 
-    qc = QuantumCircuit()
+    qc = _QC()
 
     # Occupy alpha spin-orbitals: qubits 0, 2, 4, ...
     for i in range(n_alpha):
@@ -107,7 +116,7 @@ def hardware_efficient_ansatz(
     QuantumCircuit
         The parameterised circuit.
     """
-    qc = QuantumCircuit()
+    qc = _QC()
 
     # Optional HF initial state
     if include_hf:
@@ -207,7 +216,7 @@ def uccsd_ansatz(
         n_alpha = nelec - n_beta
         nelec = (n_alpha, n_beta)
 
-    qc = QuantumCircuit()
+    qc = _QC()
 
     # 1. Hartree-Fock initial state
     _apply_hf_gates(qc, n_qubits, nelec)
