@@ -38,7 +38,18 @@ python full_workflow/full_workflow.py --gpu
 | 6 | [06_nevpt2.py](06_nevpt2.py) 🟢 | Perturbation theory | 8 | Dynamic correlation, NEVPT2 on top of CASSCF |
 | 7 | [07_dipole_moment.py](07_dipole_moment.py) | Molecular properties | 4 | Dipole moments, natural orbital occupations |
 | 8 | [08_geometry_opt.py](08_geometry_opt.py) | Geometry optimisation | 4 | Equilibrium bond length, PES scan |
-| 9 | [full_workflow/](full_workflow/) 🟢 | Complete pipeline | 6 | BeH₂: HF → CASSCF → NEVPT2 → properties |
+
+### Ansatz Comparison
+
+| # | Script | Topic | Qubits | Key Concepts |
+|---|--------|-------|:------:|-------------|
+| 9 | [09_upccd_paired_doubles.py](09_upccd_paired_doubles.py) | UpCCD vs UCCSD | 8 | Seniority-zero, paired doubles, parameter efficiency |
+
+### Full Pipeline
+
+| # | Script | Topic | Qubits | Key Concepts |
+|---|--------|-------|:------:|-------------|
+| 10 | [full_workflow/](full_workflow/) 🟢 | Complete pipeline | 6 | BeH₂: HF → CASSCF → NEVPT2 → properties |
 
 ### 🟢 MPS-Recommended Examples
 

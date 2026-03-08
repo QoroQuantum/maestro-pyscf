@@ -8,7 +8,7 @@ The primary class — a PySCF `fcisolver` drop-in that runs VQE on Maestro.
 from qoro_maestro_pyscf import MaestroSolver
 
 solver = MaestroSolver(
-    ansatz="hardware_efficient",   # "hardware_efficient" or "uccsd"
+    ansatz="hardware_efficient",   # "hardware_efficient", "uccsd", or "upccd"
     ansatz_layers=2,               # layers for hardware-efficient ansatz
     optimizer="COBYLA",            # any scipy.optimize method
     maxiter=200,                   # max VQE iterations
@@ -119,6 +119,8 @@ from qoro_maestro_pyscf.ansatze import (
     hardware_efficient_param_count,   # (n_qubits, n_layers) → int
     uccsd_ansatz,                     # (params, n_qubits, nelec) → QuantumCircuit
     uccsd_param_count,                # (n_qubits, nelec) → int
+    upccd_ansatz,                     # (params, n_qubits, nelec) → QuantumCircuit
+    upccd_param_count,                # (n_qubits, nelec) → int
 )
 ```
 
