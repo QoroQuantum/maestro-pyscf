@@ -223,6 +223,19 @@ class MaestroSolver:
         n_qubits = 2 * norb
         self._n_qubits = n_qubits
 
+        # --- Validate custom ansatz early (before importing maestro) ---
+        if self.ansatz == "custom":
+            if self.custom_ansatz is None:
+                raise ValueError(
+                    "ansatz='custom' requires `custom_ansatz` to be set "
+                    "(a callable or QuantumCircuit)."
+                )
+            if callable(self.custom_ansatz) and self.custom_ansatz_n_params is None:
+                raise ValueError(
+                    "When `custom_ansatz` is a callable, "
+                    "`custom_ansatz_n_params` must be set."
+                )
+
         # --- Configure Maestro backend ---
         self._config = configure_backend(
             use_gpu=(self.backend == "gpu"),
@@ -248,17 +261,7 @@ class MaestroSolver:
 
         # --- Determine parameter count ---
         if self.ansatz == "custom":
-            if self.custom_ansatz is None:
-                raise ValueError(
-                    "ansatz='custom' requires `custom_ansatz` to be set "
-                    "(a callable or QuantumCircuit)."
-                )
             if callable(self.custom_ansatz):
-                if self.custom_ansatz_n_params is None:
-                    raise ValueError(
-                        "When `custom_ansatz` is a callable, "
-                        "`custom_ansatz_n_params` must be set."
-                    )
                 n_params = self.custom_ansatz_n_params
             else:
                 # Pre-built circuit — zero variational parameters
@@ -665,14 +668,15 @@ class MaestroSolver:
         RuntimeError
             If no circuit is available.
         """
-        import maestro
-
         qc = circuit if circuit is not None else self._optimal_circuit
         if qc is None:
             raise RuntimeError(
                 "No circuit available. Run kernel() first or pass an "
                 "explicit `circuit` argument."
             )
+
+        import maestro
+
         if self._config is None:
             self._config = configure_backend(
                 use_gpu=(self.backend == "gpu"),
