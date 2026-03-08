@@ -92,13 +92,6 @@ def integrals_to_qubit_hamiltonian(
         h1_b = h1  # RHF: alpha = beta
 
     if isinstance(h2, tuple):
-        import warnings
-        warnings.warn(
-            "UHF two-electron integrals detected. The spin-block mapping "
-            "(αα, ββ, αβ) has not been thoroughly validated — results should "
-            "be cross-checked against a reference FCI calculation.",
-            stacklevel=2,
-        )
         h2_aa = _restore_eri(h2[0], norb)
         h2_ab = _restore_eri(h2[1], norb)
         h2_bb = _restore_eri(h2[2], norb)
