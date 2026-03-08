@@ -499,7 +499,7 @@ class TestPackageExports:
     def test_version(self):
         import qoro_maestro_pyscf
         assert hasattr(qoro_maestro_pyscf, "__version__")
-        assert qoro_maestro_pyscf.__version__ == "0.2.0"
+        assert qoro_maestro_pyscf.__version__ == "0.3.0"
 
     def test_all_exports(self):
         import qoro_maestro_pyscf
