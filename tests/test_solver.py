@@ -106,6 +106,81 @@ class TestSolverFieldsUnit:
         from qoro_maestro_pyscf import MaestroSolver
         assert MaestroSolver(vqd_penalty=10.0).vqd_penalty == 10.0
 
+    def test_learning_rate_default(self):
+        from qoro_maestro_pyscf import MaestroSolver
+        assert MaestroSolver().learning_rate == 0.01
+
+    def test_learning_rate_custom(self):
+        from qoro_maestro_pyscf import MaestroSolver
+        assert MaestroSolver(learning_rate=0.05).learning_rate == 0.05
+
+    def test_grad_shift_default(self):
+        import math
+        from qoro_maestro_pyscf import MaestroSolver
+        assert MaestroSolver().grad_shift == pytest.approx(math.pi / 2)
+
+    def test_adam_optimizer_field(self):
+        """optimizer='adam' is accepted without errors."""
+        from qoro_maestro_pyscf import MaestroSolver
+        solver = MaestroSolver(optimizer="adam", learning_rate=0.02)
+        assert solver.optimizer == "adam"
+        assert solver.learning_rate == 0.02
+
+
+class TestAdamConvergenceUnit:
+    """Test Adam optimizer logic (no Maestro required).
+
+    These tests replicate the exact Adam + parameter-shift loop from
+    MaestroSolver.kernel() on simple known cost functions.
+    """
+
+    def test_parameter_shift_gradient_exact(self):
+        """Parameter-shift at π/2 gives exact gradients for sin-based cost."""
+        shift = np.pi / 2
+        for theta in [0.0, 0.5, 1.0, np.pi / 4]:
+            analytic = np.cos(theta)
+            ps_grad = (np.sin(theta + shift) - np.sin(theta - shift)) / (2 * np.sin(shift))
+            np.testing.assert_allclose(ps_grad, analytic, atol=1e-12)
+
+    def test_adam_converges_quadratic(self):
+        """Adam should minimise f(θ) = Σ(θ_i − 1)² to near-zero."""
+        n_params = 4
+        target = np.ones(n_params)
+
+        def cost(params):
+            return float(np.sum((params - target) ** 2))
+
+        # Replicate the exact Adam loop from kernel()
+        shift = np.pi / 2
+        lr = 0.05
+        params = np.zeros(n_params)
+        m = np.zeros_like(params)
+        v = np.zeros_like(params)
+        beta1, beta2, eps = 0.9, 0.999, 1e-8
+        best_energy = float('inf')
+        best_params = params.copy()
+
+        for it in range(1, 201):
+            grad = np.zeros_like(params)
+            for j in range(len(params)):
+                p_plus = params.copy(); p_plus[j] += shift
+                p_minus = params.copy(); p_minus[j] -= shift
+                grad[j] = (cost(p_plus) - cost(p_minus)) / (2 * np.sin(shift))
+
+            m = beta1 * m + (1 - beta1) * grad
+            v = beta2 * v + (1 - beta2) * grad ** 2
+            m_hat = m / (1 - beta1 ** it)
+            v_hat = v / (1 - beta2 ** it)
+            params -= lr * m_hat / (np.sqrt(v_hat) + eps)
+
+            e = cost(params)
+            if e < best_energy:
+                best_energy = e
+                best_params = params.copy()
+
+        assert best_energy < 0.01, f"Adam didn't converge: {best_energy}"
+        np.testing.assert_allclose(best_params, target, atol=0.1)
+
 
 class TestFixSpinUnit:
     """Test fix_spin_ method."""

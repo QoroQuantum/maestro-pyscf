@@ -125,8 +125,10 @@ The `ci` argument is actually `self` — we return it from `kernel()` as the "CI
 |-------|------|---------|-------------|
 | `ansatz` | str | `"hardware_efficient"` | Ansatz type: `hardware_efficient`, `uccsd`, `upccd`, `adapt`, `custom` |
 | `ansatz_layers` | int | 2 | Layers for hardware-efficient ansatz |
-| `optimizer` | str | `"COBYLA"` | SciPy optimiser method |
+| `optimizer` | str | `"COBYLA"` | Optimiser: any SciPy method (`COBYLA`, `L-BFGS-B`, `Nelder-Mead`, …) or `"adam"` |
 | `maxiter` | int | 200 | Maximum VQE iterations (0 = pre-computed mode) |
+| `learning_rate` | float | 0.01 | Step size for Adam optimizer |
+| `grad_shift` | float | π/2 | Parameter-shift rule offset (π/2 = exact for single-qubit gates) |
 | `backend` | str | `"gpu"` | `"gpu"` or `"cpu"` |
 | `simulation` | str | `"statevector"` | `"statevector"` or `"mps"` |
 | `mps_bond_dim` | int | 64 | MPS bond dimension (only for `simulation="mps"`) |

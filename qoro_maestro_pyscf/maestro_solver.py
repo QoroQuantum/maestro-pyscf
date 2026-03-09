@@ -141,6 +141,8 @@ class MaestroSolver:
     ansatz_layers: int = 2
     optimizer: str = "COBYLA"
     maxiter: int = 200
+    learning_rate: float = 0.01
+    grad_shift: float = field(default_factory=lambda: np.pi / 2)
     backend: str = "gpu"
     simulation: str = "statevector"
     mps_bond_dim: int = 64
@@ -406,8 +408,46 @@ class MaestroSolver:
             e_vqe = cost(x0)
             self.converged = True
             self.vqe_time = 0.0
+        elif self.optimizer.upper() == "ADAM":
+            # --- Adam with parameter-shift gradients ---
+            t0 = time.perf_counter()
+            params = x0.copy()
+            m = np.zeros_like(params)    # 1st moment
+            v = np.zeros_like(params)    # 2nd moment
+            beta1, beta2, eps = 0.9, 0.999, 1e-8
+            best_energy = float('inf')
+            best_params = params.copy()
+            shift = self.grad_shift
+
+            for it in range(1, self.maxiter + 1):
+                # Parameter-shift gradient estimation
+                grad = np.zeros_like(params)
+                for j in range(len(params)):
+                    params_plus = params.copy()
+                    params_minus = params.copy()
+                    params_plus[j] += shift
+                    params_minus[j] -= shift
+                    grad[j] = (cost(params_plus) - cost(params_minus)) / (2 * np.sin(shift))
+
+                # Adam update
+                m = beta1 * m + (1 - beta1) * grad
+                v = beta2 * v + (1 - beta2) * grad ** 2
+                m_hat = m / (1 - beta1 ** it)
+                v_hat = v / (1 - beta2 ** it)
+                params -= self.learning_rate * m_hat / (np.sqrt(v_hat) + eps)
+
+                # Evaluate & track best
+                e = cost(params)
+                if e < best_energy:
+                    best_energy = e
+                    best_params = params.copy()
+
+            self.vqe_time = time.perf_counter() - t0
+            self.converged = True
+            self.optimal_params = best_params
+            e_vqe = best_energy
         else:
-            # --- Optimise ---
+            # --- SciPy optimiser ---
             opts: dict = {"maxiter": self.maxiter}
             if self.optimizer.upper() == "COBYLA":
                 opts["rhobeg"] = 0.3
