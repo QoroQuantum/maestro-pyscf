@@ -435,9 +435,15 @@ class MaestroSolver:
         # --- Initial point ---
         if self.initial_point is not None:
             x0 = np.asarray(self.initial_point, dtype=float)
+        elif self.ansatz in ("uccsd", "upccd"):
+            # Chemistry ansatze: zero amplitudes = HF state.
+            # Start near HF with small noise to break symmetry —
+            # the optimizer finds the correlation corrections from there.
+            rng = np.random.default_rng(42)
+            x0 = rng.uniform(-0.05, 0.05, size=n_params)
         else:
-            # Use wider spread than zero — too-small values keep UCCSD
-            # stuck at the HF solution (all excitation amplitudes ≈ 0).
+            # Hardware-efficient / custom: no physical starting point,
+            # use wider random initialization.
             rng = np.random.default_rng(42)
             x0 = rng.uniform(-np.pi / 4, np.pi / 4, size=n_params)
 

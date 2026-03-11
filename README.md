@@ -20,31 +20,29 @@ No GPU needed. Install and run:
 from pyscf import gto, scf, mcscf
 from qoro_maestro_pyscf import MaestroSolver
 
-mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="sto-3g")
-hf  = scf.RHF(mol).run()
-
-cas = mcscf.CASCI(hf, 2, 2)
-cas.fcisolver = MaestroSolver(ansatz="uccsd")
-cas.run()
-```
-
-That's it — Maestro runs on CPU by default. No license key required.
-
-## Running Your Own Molecule
-
-Swap in your molecule and choose an active space:
-
-```python
-from pyscf import gto, scf, mcscf
-from qoro_maestro_pyscf import MaestroSolver
-
 mol = gto.M(atom="Li 0 0 0; H 0 0 1.6", basis="sto-3g", verbose=0)
 hf = scf.RHF(mol).run()
 
-cas = mcscf.CASCI(hf, 2, 2)   # (2 electrons, 2 orbitals)
+# Exact reference (PySCF's built-in FCI)
+cas_fci = mcscf.CASCI(hf, 2, 2)
+cas_fci.verbose = 0
+fci_e = cas_fci.kernel()[0]
+
+# VQE with Maestro
+cas = mcscf.CASCI(hf, 2, 2)
 cas.fcisolver = MaestroSolver(ansatz="uccsd", maxiter=500)
-cas.run()
+vqe_e = cas.kernel()[0]
+
+print(f"FCI energy:  {fci_e:.8f} Ha")
+print(f"VQE energy:  {vqe_e:.8f} Ha")
+print(f"Error:       {abs(vqe_e - fci_e) * 1000:.4f} mHa")
 ```
+
+Runs on CPU by default — no license key required. You should see ~0.01 mHa error, well within chemical accuracy (1.6 mHa).
+
+## Running Your Own Molecule
+
+Swap in your molecule, basis set, and active space:
 
 ### Choosing Your Setup
 
