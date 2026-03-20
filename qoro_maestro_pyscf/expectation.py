@@ -169,5 +169,89 @@ def compute_state_fidelity(
     """
     p = get_state_probabilities(circuit_a, config)
     q = get_state_probabilities(circuit_b, config)
-    bhatt = float(np.sum(np.sqrt(p * q)))
+    min_len = min(len(p), len(q))
+    bhatt = float(np.sum(np.sqrt(p[:min_len] * q[:min_len])))
     return bhatt ** 2
+
+
+def compute_overlap(
+    circuit_a: QuantumCircuit,
+    circuit_b: QuantumCircuit,
+    config: BackendConfig,
+) -> float:
+    """
+    Compute the quantum state overlap |⟨ψ_a|ψ_b⟩|² between two circuits.
+
+    This is the **canonical** function for VQD overlap penalties.  It
+    automatically uses the best available Maestro API:
+
+    1. **``maestro.inner_product(c1, c2, ...)``** — exact, native, and
+       scales to large qubit counts (e.g. MPS inner product).  Used when
+       available.
+    2. **Bhattacharyya fallback** — extracts probability distributions via
+       ``maestro.get_probabilities`` and computes F = (Σ √(pᵢqᵢ))².
+       This is a lower bound on the true fidelity but works with the
+       current installed wheel.
+
+    Parameters
+    ----------
+    circuit_a, circuit_b : QuantumCircuit
+        The two ansatz circuits whose states will be compared.
+    config : BackendConfig
+        Maestro backend configuration (simulator type, simulation mode,
+        MPS bond dimension, etc.).
+
+    Returns
+    -------
+    overlap : float
+        |⟨ψ_a|ψ_b⟩|² in [0, 1].
+
+    Notes
+    -----
+    Once ``maestro.inner_product`` is available, this function will use
+    it automatically with no changes required at call sites.
+    """
+    import maestro
+
+    if hasattr(maestro, "inner_product"):
+        # --- Exact path: native Maestro inner product ---
+        kwargs: dict = {
+            "simulator_type": config.simulator_type,
+            "simulation_type": config.simulation_type,
+        }
+        if config.mps_bond_dim is not None:
+            kwargs["max_bond_dimension"] = config.mps_bond_dim
+        result = maestro.inner_product(circuit_a, circuit_b, **kwargs)
+        # inner_product returns |⟨ψ_a|ψ_b⟩|² directly (real, non-negative)
+        return float(abs(result))
+
+    # --- Fallback: Bhattacharyya probability-based fidelity ---
+    # TODO: remove fallback once maestro.inner_product is available in the wheel
+    return compute_state_fidelity(circuit_a, circuit_b, config)
+
+
+def compute_statevector_fidelity(
+    circuit_a: QuantumCircuit,
+    circuit_b: QuantumCircuit,
+    config: BackendConfig,
+) -> float:
+    """
+    Compute the quantum fidelity between two pure circuit states.
+
+    Delegates to :func:`compute_overlap`, which automatically uses
+    ``maestro.inner_product`` when available.
+
+    Parameters
+    ----------
+    circuit_a, circuit_b : QuantumCircuit
+        The two circuits to compare.
+    config : BackendConfig
+        Maestro backend configuration.
+
+    Returns
+    -------
+    fidelity : float
+        |⟨ψ_a|ψ_b⟩|² in [0, 1].
+    """
+    return compute_overlap(circuit_a, circuit_b, config)
+

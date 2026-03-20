@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qoro-maestro-pyscf"
-version = "0.6.0"
+version = "0.6.1"
 description = "PySCF VQE plugin for the Maestro quantum simulator — works on CPU, upgrade to GPU for speed"
 readme = "README.md"
 license = {text = "Apache-2.0"}

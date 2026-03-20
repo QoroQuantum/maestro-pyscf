@@ -586,27 +586,14 @@ class MaestroSolver:
         ci_vecs : list of MaestroSolver
             ``[self] * nroots`` for PySCF compatibility.
         """
-        import maestro
-        from qoro_maestro_pyscf.expectation import compute_energy
+        from qoro_maestro_pyscf.expectation import compute_energy, compute_overlap
 
         # Store ground state
         self._vqd_energies = [ground_energy]
         self._vqd_circuits = [self._optimal_circuit]
 
-        sv_kwargs = {
-            "simulator_type": self._config.simulator_type,
-            "simulation_type": self._config.simulation_type,
-        }
-        if self._config.mps_bond_dim is not None:
-            sv_kwargs["max_bond_dimension"] = self._config.mps_bond_dim
-
-        # Get ground-state statevector for overlap
-        previous_svs = [
-            np.asarray(
-                maestro.get_state_vector(self._optimal_circuit, **sv_kwargs),
-                dtype=np.complex128,
-            )
-        ]
+        # Store circuits for overlap computation (compute_overlap handles API selection)
+        previous_circuits = [self._optimal_circuit]
 
         if self.verbose:
             print(f"\n  [VQD] Computing {self.nroots - 1} excited states "
@@ -643,14 +630,11 @@ class MaestroSolver:
                     self._config,
                 )
 
-                # Overlap penalty with all previous states
-                sv_k = np.asarray(
-                    maestro.get_state_vector(qc, **sv_kwargs),
-                    dtype=np.complex128,
-                )
-                for sv_prev in previous_svs:
-                    overlap_sq = abs(np.vdot(sv_prev, sv_k)) ** 2
-                    energy += self.vqd_penalty * overlap_sq
+                # Overlap penalty — delegates to compute_overlap which automatically
+                # uses maestro.inner_product when available
+                for circ_prev in previous_circuits:
+                    overlap = compute_overlap(circ_prev, qc, self._config)
+                    energy += self.vqd_penalty * overlap
 
                 iteration_k[0] += 1
                 if self.verbose and (iteration_k[0] % 20 == 0 or iteration_k[0] == 1):
@@ -680,13 +664,8 @@ class MaestroSolver:
             self._vqd_energies.append(e_k)
             self._vqd_circuits.append(qc_k)
 
-            # Store statevector for next root's penalty
-            previous_svs.append(
-                np.asarray(
-                    maestro.get_state_vector(qc_k, **sv_kwargs),
-                    dtype=np.complex128,
-                )
-            )
+            # Store circuit for future overlap computations
+            previous_circuits.append(qc_k)
 
             if self.verbose:
                 print(f"  [VQD] Root {root}: E = {e_k:+.10f} Ha")
@@ -962,25 +941,13 @@ class MaestroSolver:
                 "explicit `circuit` argument."
             )
 
-        import maestro
-
-        if self._config is None:
-            self._config = configure_backend(
-                use_gpu=(self.backend == "gpu"),
-                simulation=self.simulation,
-                mps_bond_dim=self.mps_bond_dim,
-                license_key=self.license_key,
-            )
-
-        kwargs = {
-            "simulator_type": self._config.simulator_type,
-            "simulation_type": self._config.simulation_type,
-        }
-        if self._config.mps_bond_dim is not None:
-            kwargs["max_bond_dimension"] = self._config.mps_bond_dim
-
-        sv = maestro.get_state_vector(qc, **kwargs)
-        return np.asarray(sv, dtype=np.complex128)
+        # TODO: implement using maestro.get_state_vector once available in the
+        # installed wheel. Tracked in maestro-pyscf issue: get_state_vector binding.
+        raise NotImplementedError(
+            "get_final_statevector() requires maestro.get_state_vector(), which "
+            "is not yet available in the installed qoro-maestro wheel. "
+            "Rebuild Maestro from source to enable this method."
+        )
 
     def fix_spin_(self, shift: float = 0.2, ss: float | None = None):
         """

@@ -43,8 +43,14 @@ Quick Start
 """
 
 from qoro_maestro_pyscf.maestro_solver import MaestroSolver
+from qoro_maestro_pyscf.vqd_solver import VQDSolver
 from qoro_maestro_pyscf.backends import BackendConfig, configure_backend, set_license_key
-from qoro_maestro_pyscf.expectation import get_state_probabilities, compute_state_fidelity
+from qoro_maestro_pyscf.expectation import (
+    get_state_probabilities,
+    compute_state_fidelity,
+    compute_statevector_fidelity,
+    compute_overlap,
+)
 from qoro_maestro_pyscf.properties import (
     compute_dipole_moment,
     compute_natural_orbitals,
@@ -57,11 +63,14 @@ from qoro_maestro_pyscf.tapering import taper_hamiltonian, TaperingResult
 
 __all__ = [
     "MaestroSolver",
+    "VQDSolver",
     "BackendConfig",
     "configure_backend",
     "set_license_key",
     "get_state_probabilities",
     "compute_state_fidelity",
+    "compute_statevector_fidelity",
+    "compute_overlap",
     "compute_dipole_moment",
     "compute_natural_orbitals",
     "suggest_active_space",
