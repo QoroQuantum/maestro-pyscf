@@ -102,18 +102,24 @@ def _compute_probabilities_via_z_projectors(
     all_exp_vals[0] = 1.0
     all_exp_vals[1:] = z_exp_vals
 
-    # Compute probabilities via Walsh-Hadamard-like transform
-    probs = np.zeros(n_states)
-    for k in range(n_states):
-        val = 0.0
-        for mask in range(n_states):
-            # (-1)^{popcount(k & mask)}
-            sign = (-1) ** bin(k & mask).count('1')
-            val += sign * all_exp_vals[mask]
-        probs[k] = val / n_states
+    # Compute probabilities via fast Walsh-Hadamard transform O(n·2^n)
+    probs = all_exp_vals.copy()
+    step = 1
+    while step < n_states:
+        for i in range(0, n_states, step * 2):
+            for j in range(i, i + step):
+                a = probs[j]
+                b = probs[j + step]
+                probs[j] = a + b
+                probs[j + step] = a - b
+        step *= 2
+    probs /= n_states
 
-    # Clamp small numerical noise to zero
+    # Clamp small numerical noise to zero and renormalize
     probs = np.maximum(probs, 0.0)
+    total = probs.sum()
+    if total > 0:
+        probs /= total
 
     return probs
 
@@ -397,9 +403,13 @@ class QSCISolver:
             print(f"╠══ Step 3: Classical diagonalization ══════════════")
 
         # ── Step 3: Subspace diagonalization via PySCF selected_ci ───
-        # Restore h2 to full 4D tensor if compressed
+        # Restore h2 to full 4D tensor(s) if compressed
         if isinstance(h2, tuple):
-            h2_full = h2  # UHF — pass through
+            # UHF: (h2_aa, h2_ab, h2_bb) — restore each spin block
+            h2_full = tuple(
+                ao2mo.restore(1, h2_block, norb) if h2_block.ndim != 4 else h2_block
+                for h2_block in h2
+            )
         else:
             h2_full = ao2mo.restore(1, h2, norb) if h2.ndim != 4 else h2
 
