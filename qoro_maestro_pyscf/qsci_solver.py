@@ -36,19 +36,13 @@ References
 
 from __future__ import annotations
 
-import logging
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Union
+from typing import Union
 
 import numpy as np
 
-if TYPE_CHECKING:
-    from maestro.circuits import QuantumCircuit
-
 from qoro_maestro_pyscf.maestro_solver import MaestroSolver
-
-logger = logging.getLogger(__name__)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -268,12 +262,6 @@ class QSCISolver:
     probability_threshold : float
         Minimum probability for a configuration to be considered.
         Default: 1e-8.
-    sci_max_iterations : int
-        Maximum self-consistent configuration recovery iterations.
-        Default: 1 (no self-consistency; single-shot QSCI).
-    sci_convergence_tol : float
-        Energy convergence tolerance for the self-consistent loop.
-        Default: 1e-6 Ha.
     verbose : bool
         Print progress. Default: True.
 
@@ -300,8 +288,6 @@ class QSCISolver:
     inner_solver: MaestroSolver = field(default_factory=MaestroSolver)
     n_samples: int = 500
     probability_threshold: float = 1e-8
-    sci_max_iterations: int = 1
-    sci_convergence_tol: float = 1e-6
     verbose: bool = True
 
     # --- PySCF interface attributes (set by CASCI/CASSCF) ---
@@ -367,7 +353,6 @@ class QSCISolver:
 
         self._norb = norb
         self._n_qubits = 2 * norb
-        n_alpha, n_beta = self._nelec
 
         if self.verbose:
             print(f"\n╔══ QSCI Solver (Maestro) ══════════════════════════")
