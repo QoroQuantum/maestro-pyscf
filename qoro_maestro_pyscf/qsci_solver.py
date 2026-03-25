@@ -88,11 +88,13 @@ def _compute_probabilities_via_z_projectors(
     # Build all Z-string observables (excluding identity at mask=0)
     z_labels = []
     for mask in range(1, n_states):
-        label = ['I'] * n_qubits
+        chars = ['I'] * n_qubits
+        m = mask
         for i in range(n_qubits):
-            if (mask >> i) & 1:
-                label[i] = 'Z'
-        z_labels.append(''.join(label))
+            if m & 1:
+                chars[i] = 'Z'
+            m >>= 1
+        z_labels.append(''.join(chars))
 
     # Single batched estimate call
     z_exp_vals = evaluate_expectation(circuit, z_labels, config)
@@ -182,24 +184,28 @@ def _probabilities_to_determinants(
             "Try lowering the threshold or improving the VQE result."
         )
 
-    # Step 2: postselect by Hamming weight on α/β sectors
-    valid_indices = []
-    for idx in candidates:
-        bits = _index_to_bits(idx, n_qubits)
-        # JW interleaved: even qubits = α, odd qubits = β
-        alpha_bits = bits[0::2]  # positions 0, 2, 4, ...
-        beta_bits = bits[1::2]   # positions 1, 3, 5, ...
-        if np.sum(alpha_bits) == n_alpha and np.sum(beta_bits) == n_beta:
-            valid_indices.append(idx)
+    # Step 2: vectorized Hamming-weight postselection on α/β sectors
+    # Build masks for even qubits (α) and odd qubits (β)
+    alpha_mask = sum(1 << i for i in range(0, n_qubits, 2))
+    beta_mask = sum(1 << i for i in range(1, n_qubits, 2))
 
-    if len(valid_indices) == 0:
+    alpha_bits = (candidates & alpha_mask)
+    beta_bits = (candidates & beta_mask)
+
+    # popcount via lookup
+    alpha_counts = np.array([bin(x).count('1') for x in alpha_bits])
+    beta_counts = np.array([bin(x).count('1') for x in beta_bits])
+
+    valid_mask = (alpha_counts == n_alpha) & (beta_counts == n_beta)
+
+    if not np.any(valid_mask):
         raise ValueError(
             f"No bitstrings with correct electron counts "
             f"(n_α={n_alpha}, n_β={n_beta}) found above threshold. "
             "The VQE state may not preserve particle number."
         )
 
-    valid_indices = np.array(valid_indices)
+    valid_indices = candidates[valid_mask]
     valid_probs = probabilities[valid_indices]
 
     # Step 3: sort by probability and take top n_samples
@@ -209,34 +215,26 @@ def _probabilities_to_determinants(
     selected_probs = valid_probs[order[:n_keep]]
 
     # Step 4: convert to α/β determinant integers
+    # Extract interleaved α bits (even positions) and β bits (odd positions),
+    # then compact them into n_spatial-bit integers.
     alpha_strs_set = set()
     beta_strs_set = set()
-
     for idx in top_indices:
-        bits = _index_to_bits(idx, n_qubits)
-        alpha_bits = bits[0::2]
-        beta_bits = bits[1::2]
-        alpha_strs_set.add(_bits_to_int(alpha_bits, n_spatial))
-        beta_strs_set.add(_bits_to_int(beta_bits, n_spatial))
+        a_int = 0
+        b_int = 0
+        for s in range(n_spatial):
+            if (idx >> (2 * s)) & 1:
+                a_int |= 1 << s
+            if (idx >> (2 * s + 1)) & 1:
+                b_int |= 1 << s
+        alpha_strs_set.add(a_int)
+        beta_strs_set.add(b_int)
 
     ci_strs_a = np.array(sorted(alpha_strs_set), dtype=np.int64)
     ci_strs_b = np.array(sorted(beta_strs_set), dtype=np.int64)
 
     return ci_strs_a, ci_strs_b, selected_probs
 
-
-def _index_to_bits(index: int, n_qubits: int) -> np.ndarray:
-    """Convert a basis state index to a binary array (LSB-first)."""
-    return np.array([(index >> i) & 1 for i in range(n_qubits)], dtype=int)
-
-
-def _bits_to_int(bits: np.ndarray, n_bits: int) -> int:
-    """Convert a binary array (LSB-first) to an integer."""
-    result = 0
-    for i in range(n_bits):
-        if bits[i]:
-            result |= (1 << i)
-    return result
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -445,21 +443,23 @@ class QSCISolver:
     # RDM interface (PySCF protocol)
     # ──────────────────────────────────────────────────────────────────
 
+    def _resolve_sci_vec(self, fake_ci_vec):
+        """Resolve the CI vector and wrap as an SCIvector."""
+        from pyscf.fci.selected_ci import _as_SCIvector
+
+        solver = fake_ci_vec if isinstance(fake_ci_vec, QSCISolver) else self
+        return _as_SCIvector(solver._ci_vector, solver._ci_strs), solver
+
     def make_rdm1(
         self,
         fake_ci_vec: "QSCISolver",
         norb: int,
         nelec: Union[int, tuple[int, int]],
     ) -> np.ndarray:
-        """
-        Spin-traced 1-RDM from the QSCI eigenvector.
+        """Spin-traced 1-RDM from the QSCI eigenvector."""
+        from pyscf.fci.selected_ci import make_rdm1
 
-        Uses PySCF's ``selected_ci.make_rdm1`` — no quantum resources needed.
-        """
-        from pyscf.fci.selected_ci import make_rdm1, _as_SCIvector
-
-        solver = fake_ci_vec if isinstance(fake_ci_vec, QSCISolver) else self
-        sci_vec = _as_SCIvector(solver._ci_vector, solver._ci_strs)
+        sci_vec, solver = self._resolve_sci_vec(fake_ci_vec)
         return make_rdm1(sci_vec, solver._norb, solver._nelec)
 
     def make_rdm1s(
@@ -469,10 +469,9 @@ class QSCISolver:
         nelec: Union[int, tuple[int, int]],
     ) -> tuple[np.ndarray, np.ndarray]:
         """Alpha and beta 1-RDMs from the QSCI eigenvector."""
-        from pyscf.fci.selected_ci import make_rdm1s, _as_SCIvector
+        from pyscf.fci.selected_ci import make_rdm1s
 
-        solver = fake_ci_vec if isinstance(fake_ci_vec, QSCISolver) else self
-        sci_vec = _as_SCIvector(solver._ci_vector, solver._ci_strs)
+        sci_vec, solver = self._resolve_sci_vec(fake_ci_vec)
         return make_rdm1s(sci_vec, solver._norb, solver._nelec)
 
     def make_rdm12(
@@ -482,13 +481,10 @@ class QSCISolver:
         nelec: Union[int, tuple[int, int]],
     ) -> tuple[np.ndarray, np.ndarray]:
         """Spin-traced 1-RDM and 2-RDM from the QSCI eigenvector."""
-        from pyscf.fci.selected_ci import make_rdm1, make_rdm2, _as_SCIvector
+        from pyscf.fci.selected_ci import make_rdm12
 
-        solver = fake_ci_vec if isinstance(fake_ci_vec, QSCISolver) else self
-        sci_vec = _as_SCIvector(solver._ci_vector, solver._ci_strs)
-        rdm1 = make_rdm1(sci_vec, solver._norb, solver._nelec)
-        rdm2 = make_rdm2(sci_vec, solver._norb, solver._nelec)
-        return rdm1, rdm2
+        sci_vec, solver = self._resolve_sci_vec(fake_ci_vec)
+        return make_rdm12(sci_vec, solver._norb, solver._nelec)
 
     def make_rdm12s(
         self,
@@ -500,15 +496,10 @@ class QSCISolver:
         tuple[np.ndarray, np.ndarray, np.ndarray],
     ]:
         """Spin-resolved 1-RDMs and 2-RDMs."""
-        from pyscf.fci.selected_ci import (
-            make_rdm1s, make_rdm2s, _as_SCIvector,
-        )
+        from pyscf.fci.selected_ci import make_rdm12s
 
-        solver = fake_ci_vec if isinstance(fake_ci_vec, QSCISolver) else self
-        sci_vec = _as_SCIvector(solver._ci_vector, solver._ci_strs)
-        rdm1s = make_rdm1s(sci_vec, solver._norb, solver._nelec)
-        rdm2s = make_rdm2s(sci_vec, solver._norb, solver._nelec)
-        return rdm1s, rdm2s
+        sci_vec, solver = self._resolve_sci_vec(fake_ci_vec)
+        return make_rdm12s(sci_vec, solver._norb, solver._nelec)
 
     def spin_square(
         self,
@@ -517,9 +508,8 @@ class QSCISolver:
         nelec: Union[int, tuple[int, int]],
     ) -> tuple[float, float]:
         """Compute ⟨S²⟩ and 2S+1 from the QSCI eigenvector."""
-        from pyscf.fci.selected_ci import spin_square, _as_SCIvector
+        from pyscf.fci.selected_ci import spin_square
 
-        solver = fake_ci_vec if isinstance(fake_ci_vec, QSCISolver) else self
-        sci_vec = _as_SCIvector(solver._ci_vector, solver._ci_strs)
+        sci_vec, solver = self._resolve_sci_vec(fake_ci_vec)
         ss, multip = spin_square(sci_vec, solver._norb, solver._nelec)
         return float(ss), float(multip)
