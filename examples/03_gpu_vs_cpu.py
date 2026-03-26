@@ -34,7 +34,7 @@ are massively parallelised — thousands of amplitudes updated simultaneously.
 A typical VQE runs 100–500 iterations, each with dozens of Pauli evaluations.
 The GPU speedup compounds across all of these.
 
-What Qoro offers
+What Maestro offers
 -------------------
 - **CPU by default** — works out of the box, no license needed
 - **GPU upgrade** — switch to GPU for dramatic speedups on larger systems

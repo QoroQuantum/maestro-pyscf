@@ -143,7 +143,7 @@ def run_adapt_vqe(
     pauli_coeffs : np.ndarray
         Coefficients for each Pauli string.
     config : BackendConfig
-        Qoro backend configuration.
+        Maestro backend configuration.
     pool : str
         Operator pool: "sd" or "d".
     gradient_threshold : float

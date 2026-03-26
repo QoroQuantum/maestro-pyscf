@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-QoroSolver — PySCF FCI-solver drop-in backed by Qoro VQE.
+QoroSolver — PySCF FCI-solver drop-in backed by Maestro VQE.
 
 This is the primary user-facing class of ``qoro-pyscf``.  It mirrors
 the API of ``qiskit_nature_pyscf.QiskitSolver``, enabling a seamless swap:
@@ -21,7 +21,7 @@ the API of ``qiskit_nature_pyscf.QiskitSolver``, enabling a seamless swap:
     # Before (Qiskit):
     cas.fcisolver = QiskitSolver(algorithm)
 
-    # After (Qoro):
+    # After (Maestro):
     cas.fcisolver = QoroSolver(ansatz="uccsd")
 
 The solver integrates with PySCF's CASCI and CASSCF objects by implementing
@@ -72,10 +72,10 @@ logger = logging.getLogger(__name__)
 @dataclass
 class QoroSolver:
     """
-    PySCF FCI-solver interface that runs a VQE on the Qoro simulator.
+    PySCF FCI-solver interface that runs a VQE on the Maestro simulator.
 
     Replaces PySCF's classical FCI solver with a quantum VQE algorithm
-    executed on Qoro's CPU or GPU-accelerated backend.
+    executed on Maestro's CPU or GPU-accelerated backend.
 
     Parameters
     ----------
@@ -122,13 +122,13 @@ class QoroSolver:
     backend : str
         Backend selection: ``"cpu"`` or ``"gpu"``. Default: ``"cpu"``.
         CPU works out of the box with no license. Switch to ``"gpu"``
-        for GPU acceleration (requires a Qoro license key).
+        for GPU acceleration (requires a Maestro license key).
     simulation : str
         Simulation mode: ``"statevector"`` or ``"mps"``. Default: ``"statevector"``.
     mps_bond_dim : int
         MPS bond dimension (for ``simulation="mps"``). Default: 64.
     license_key : str or None
-        Qoro GPU license key (e.g. ``"XXXX-XXXX-XXXX-XXXX"``).
+        Maestro GPU license key (e.g. ``"XXXX-XXXX-XXXX-XXXX"``).
         If provided, sets the ``MAESTRO_LICENSE_KEY`` env var before GPU
         init. Can also be set via the env var directly or
         :func:`qoro_pyscf.backends.set_license_key`.
@@ -242,7 +242,7 @@ class QoroSolver:
         **kwargs,
     ) -> tuple[float, "QoroSolver"]:
         """
-        Find the ground-state energy via VQE on Qoro.
+        Find the ground-state energy via VQE.
 
         Implements PySCF's ``fcisolver.kernel`` protocol.
 
@@ -279,7 +279,7 @@ class QoroSolver:
         n_qubits = 2 * norb
         self._n_qubits = n_qubits
 
-        # --- Validate custom ansatz early (before importing maestro) ---
+        # --- Validate custom ansatz early (before importing Maestro) ---
         if self.ansatz == "custom":
             if self.custom_ansatz is None:
                 raise ValueError(
@@ -292,7 +292,7 @@ class QoroSolver:
                     "`custom_ansatz_n_params` must be set."
                 )
 
-        # --- Configure Qoro backend ---
+        # --- Configure Maestro backend ---
         self._config = configure_backend(
             use_gpu=(self.backend == "gpu"),
             simulation=self.simulation,
@@ -302,10 +302,10 @@ class QoroSolver:
 
         if self.verbose:
             logger.info(
-                "Qoro VQE: Backend=%s, Qubits=%d, Ansatz=%s",
+                "Maestro VQE: Backend=%s, Qubits=%d, Ansatz=%s",
                 self._config.label, n_qubits, self.ansatz,
             )
-            print(f"\nCASCI VQE solver (Qoro)")
+            print(f"\nCASCI VQE solver (Maestro)")
             print(f"  Active space : ({sum(self._nelec)}e, {norb}o) → {n_qubits} qubits")
             print(f"  Ansatz       : {self.ansatz}")
             print(f"  Backend      : {self._config.label}")
@@ -946,7 +946,7 @@ class QoroSolver:
         raise NotImplementedError(
             "get_final_statevector() requires maestro.get_state_vector(), which "
             "is not yet available in the installed qoro-maestro wheel. "
-            "Rebuild Qoro from source to enable this method."
+            "Rebuild Maestro from source to enable this method."
         )
 
     def fix_spin_(self, shift: float = 0.2, ss: float | None = None):

@@ -16,7 +16,7 @@
 QSCISolver — PySCF FCI-solver drop-in backed by Quantum-Selected CI.
 
 Implements the QSCI algorithm (arXiv:2302.11320): a hybrid quantum-classical
-method that uses a quantum computer (via VQE on Qoro) to *select* important
+method that uses a quantum computer (via VQE on Maestro) to *select* important
 electron configurations, then classically diagonalizes the Hamiltonian in the
 subspace spanned by those configurations.
 
@@ -65,7 +65,7 @@ def _compute_probabilities_via_z_projectors(
     and ⟨Z_z⟩ is the expectation value of the corresponding Z-string operator.
 
     All Z-strings are batched into a single ``circuit.estimate()`` call,
-    so Qoro evaluates them in one statevector/MPS pass.
+    so Maestro evaluates them in one statevector/MPS pass.
 
     Parameters
     ----------
@@ -74,7 +74,7 @@ def _compute_probabilities_via_z_projectors(
     n_qubits : int
         Number of qubits (spin-orbitals).
     config : BackendConfig
-        Qoro backend configuration.
+        Maestro backend configuration.
 
     Returns
     -------
@@ -359,7 +359,7 @@ class QSCISolver:
         self._n_qubits = 2 * norb
 
         if self.verbose:
-            print(f"\n╔══ QSCI Solver (Qoro) ══════════════════════════")
+            print(f"\n╔══ QSCI Solver (Maestro) ══════════════════════════")
             print(f"║  Active space : ({sum(self._nelec)}e, {norb}o) → "
                   f"{self._n_qubits} qubits")
             print(f"║  Max samples  : {self.n_samples}")

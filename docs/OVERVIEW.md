@@ -4,7 +4,7 @@
 
 `qoro-pyscf` is a PySCF integration plugin for the [Qoro](https://qoroquantum.github.io/maestro/) quantum simulator by [Qoro Quantum](https://qoroquantum.de). It enables VQE calculations within PySCF's CASCI/CASSCF framework — works on CPU out of the box, with optional GPU acceleration for speed.
 
-It lets you run quantum chemistry calculations (VQE) on Qoro's CPU or GPU-accelerated backends directly within PySCF's CASCI/CASSCF framework.
+It lets you run quantum chemistry calculations (VQE) on Maestro's CPU or GPU-accelerated backends directly within PySCF's CASCI/CASSCF framework.
 
 ---
 
@@ -13,7 +13,7 @@ It lets you run quantum chemistry calculations (VQE) on Qoro's CPU or GPU-accele
 ```
 PySCF (molecule → integrals)
     ↓
-qoro-pyscf (integrals → qubit Hamiltonian → VQE on Qoro → RDMs)
+qoro-pyscf (integrals → qubit Hamiltonian → VQE on Maestro → RDMs)
     ↓
 PySCF (RDMs → orbital optimisation → energy)
 ```
@@ -22,13 +22,13 @@ PySCF (RDMs → orbital optimisation → energy)
 
 1. **PySCF calls `kernel(h1, h2, norb, nelec)`** — passes one- and two-electron integrals from the active space
 2. **We build the qubit Hamiltonian** — Jordan-Wigner transformation via OpenFermion
-3. **We build the ansatz circuit** — hardware-efficient, UCCSD, UpCCD, ADAPT-VQE, or a **custom** user-injected circuit (e.g. QCC), as native Qoro `QuantumCircuit` objects
-4. **We run VQE on Qoro's GPU** — SciPy optimiser + Qoro's `qc.estimate()` for expectation values
+3. **We build the ansatz circuit** — hardware-efficient, UCCSD, UpCCD, ADAPT-VQE, or a **custom** user-injected circuit (e.g. QCC), as native Maestro `QuantumCircuit` objects
+4. **We run VQE on Maestro's GPU** — SciPy optimiser + Qoro's `qc.estimate()` for expectation values
 5. **We return `(energy, self)` to PySCF** — and reconstruct RDMs on demand from the optimised circuit
 
 ### Key Difference from Qiskit
 
-In qiskit-nature-pyscf, the heavy lifting is done by `qiskit-nature` (ElectronicStructureProblem, mappers, ElectronicDensity). We replace all of that with our own lightweight implementation using OpenFermion + Qoro.
+In qiskit-nature-pyscf, the heavy lifting is done by `qiskit-nature` (ElectronicStructureProblem, mappers, ElectronicDensity). We replace all of that with our own lightweight implementation using OpenFermion + Maestro.
 
 ---
 
@@ -56,7 +56,7 @@ QoroSolver.kernel()
   ├─→ [optional] tapering.taper_hamiltonian()        →  reduced QubitOperator (−2 qubits)
   ├─→ hamiltonian.qubit_op_to_pauli_list()           →  Pauli labels + coeffs
   ├─→ ansatze / custom_ansatz(params)                →  QuantumCircuit
-  ├─→ expectation.compute_energy(circuit, paulis)    →  float (via Qoro GPU)
+  ├─→ expectation.compute_energy(circuit, paulis)    →  float (via Maestro GPU)
   ├─→ [optional] spin penalty via fix_spin_()        →  ⟨S²⟩ penalty term
   ├─→ [optional] callback(iteration, energy, params) →  user logging
   ├─→ scipy.optimize.minimize(cost_fn)               →  optimal params

@@ -36,7 +36,7 @@ What this example shows
 -----------------------
 - PySCF computes molecular integrals at each geometry
 - QoroSolver runs a VQE for each bond length
-- We compare HF, VQE (Qoro), and exact FCI energies
+- We compare HF, VQE (Maestro), and exact FCI energies
 - At large bond lengths, VQE tracks FCI while HF diverges
 
 Usage
@@ -81,7 +81,7 @@ def main():
         cas_fci.verbose = 0
         fci_e = cas_fci.kernel()[0]
 
-        # VQE on Qoro
+        # VQE on Maestro
         cas_vqe = mcscf.CASCI(hf_obj, 2, 2)
         cas_vqe.fcisolver = QoroSolver(
             ansatz="uccsd",

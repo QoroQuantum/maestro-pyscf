@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Backend configuration for Qoro quantum simulation.
+Backend configuration for Maestro quantum simulation.
 
 Handles GPU/CPU detection, simulation type selection (Statevector / MPS),
 license key management, and provides a portable configuration object used
@@ -37,7 +37,7 @@ class SimulationMode(str, Enum):
 @dataclass
 class BackendConfig:
     """
-    Configuration for the Qoro simulation backend.
+    Configuration for the Maestro simulation backend.
 
     Attributes
     ----------
@@ -58,15 +58,15 @@ class BackendConfig:
 
 def set_license_key(key: str) -> None:
     """
-    Set the Qoro GPU license key.
+    Set the Maestro GPU license key.
 
     The key is stored as the ``MAESTRO_LICENSE_KEY`` environment variable,
-    which Qoro reads automatically during ``init_gpu()``.
+    which Maestro reads automatically during ``init_gpu()``.
 
     Parameters
     ----------
     key : str
-        Your Qoro license key (e.g. ``"XXXX-XXXX-XXXX-XXXX"``).
+        Your Maestro license key (e.g. ``"XXXX-XXXX-XXXX-XXXX"``).
 
     Notes
     -----
@@ -92,7 +92,7 @@ def configure_backend(
     license_key: Optional[str] = None,
 ) -> BackendConfig:
     """
-    Create a Qoro backend configuration with automatic fallback.
+    Create a Maestro backend configuration with automatic fallback.
 
     Parameters
     ----------
@@ -106,14 +106,14 @@ def configure_backend(
         Bond dimension for MPS simulation. Ignored for statevector mode.
         Higher values = more accurate but slower. Default: 64.
     license_key : str or None
-        Qoro GPU license key. If provided, sets the ``MAESTRO_LICENSE_KEY``
+        Maestro GPU license key. If provided, sets the ``MAESTRO_LICENSE_KEY``
         environment variable before GPU initialisation. Can also be set via
         :func:`set_license_key` or directly as an env var.
 
     Returns
     -------
     BackendConfig
-        Configured backend ready for use with Qoro.
+        Configured backend ready for use with Maestro.
 
     Examples
     --------

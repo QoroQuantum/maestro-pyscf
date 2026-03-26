@@ -15,7 +15,7 @@ def _has_maestro() -> bool:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Unit tests — no Qoro required
+# Unit tests — no Maestro required
 # ═══════════════════════════════════════════════════════════════════════════════
 
 class TestVQDSolverFieldsUnit:
@@ -152,12 +152,12 @@ class TestPackageExportsVQD:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Integration tests — require Qoro native library
+# Integration tests — require Maestro native library
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @pytest.mark.skipif(not _has_maestro(), reason="Requires maestro native library")
 class TestVQDSolverIntegration:
-    """Integration tests for VQDSolver with Qoro backend."""
+    """Integration tests for VQDSolver with Maestro backend."""
 
     def test_construction_with_solver(self):
         from qoro_pyscf import QoroSolver, VQDSolver

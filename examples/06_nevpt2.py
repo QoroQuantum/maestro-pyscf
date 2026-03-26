@@ -88,7 +88,7 @@ def main():
     fci_e = cas_fci.kernel()[0]
 
     # --- Step 1: CASSCF with QoroSolver ---
-    print(f"\n  Step 1: CASSCF on Qoro ({backend.upper()})...")
+    print(f"\n  Step 1: CASSCF on Maestro ({backend.upper()})...")
     cas = mcscf.CASSCF(hf_obj, norb, nelec)
     cas.fcisolver = QoroSolver(
         ansatz="hardware_efficient",
@@ -119,7 +119,7 @@ def main():
     print(f"  {'─' * 50}")
     for label, energy in [
         ("HF", hf_obj.e_tot),
-        ("CASSCF (Qoro)", casscf_e),
+        ("CASSCF (Maestro)", casscf_e),
         ("CASSCF + NEVPT2", nevpt2_e),
         ("FCI (exact)", fci_e),
     ]:
