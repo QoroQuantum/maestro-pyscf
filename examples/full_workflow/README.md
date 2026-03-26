@@ -1,6 +1,6 @@
 # Full Quantum Chemistry Workflow with Qoro
 
-A complete, publication-quality quantum chemistry pipeline running on Qoro's GPU-accelerated quantum simulator.
+A complete, publication-quality quantum chemistry pipeline running on Maestro's GPU-accelerated quantum simulator.
 
 ## What This Does
 
@@ -14,7 +14,7 @@ This example models **BeH₂** (beryllium dihydride) — a molecule with interes
 │  Step 2: Hartree-Fock (PySCF, classical)                         │
 │    Mean-field approximation → starting orbitals                  │
 ├──────────────────────────────────────────────────────────────────┤
-│  Step 3: CASSCF on Qoro GPU  ◀━━ THIS IS THE QUANTUM PART   │
+│  Step 3: CASSCF on Maestro GPU  ◀━━ THIS IS THE QUANTUM PART   │
 │    VQE in a (2e, 3o) active space → 6 qubits                    │
 │    Orbital optimisation using VQE density matrices               │
 ├──────────────────────────────────────────────────────────────────┤
@@ -28,9 +28,9 @@ This example models **BeH₂** (beryllium dihydride) — a molecule with interes
 
 ## Why This Matters
 
-This is **exactly** how computational chemists work every day — the same pipeline they'd run with a classical FCI solver or DMRG. The only difference is that the active-space solver is a VQE running on Qoro's GPU.
+This is **exactly** how computational chemists work every day — the same pipeline they'd run with a classical FCI solver or DMRG. The only difference is that the active-space solver is a VQE running on Maestro's GPU.
 
-If you can show a chemist this example and they see familiar output (CASSCF energies, NEVPT2 corrections, natural orbital occupations, dipole moments), they'll immediately understand how Qoro fits into their workflow.
+If you can show a chemist this example and they see familiar output (CASSCF energies, NEVPT2 corrections, natural orbital occupations, dipole moments), they'll immediately understand how Maestro fits into their workflow.
 
 ## Running
 
@@ -55,7 +55,7 @@ jupyter notebook full_workflow.ipynb
   ├─ Step 2: Hartree-Fock
   │  E(HF) = -15.XXXXXXXXXX Ha
   │
-  ├─ Step 3: CASSCF on Qoro (CPU)
+  ├─ Step 3: CASSCF on Maestro (CPU)
   │  Active space: (2e, 3o) → 6 qubits
   │  E(CASSCF) = -15.XXXXXXXXXX Ha
   │
@@ -71,7 +71,7 @@ jupyter notebook full_workflow.ipynb
   └─ Summary
      Method                  Energy (Ha)     Δ FCI (mHa)
      HF                    -15.XXXXXXXX         XX.XX
-     CASSCF (Qoro)      -15.XXXXXXXX          X.XX
+     CASSCF (Maestro)      -15.XXXXXXXX          X.XX
      CASSCF + NEVPT2       -15.XXXXXXXX          X.XX
      FCI (exact)           -15.XXXXXXXX          0.00
 ```

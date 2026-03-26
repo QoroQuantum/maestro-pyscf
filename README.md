@@ -10,7 +10,7 @@
 pip install qoro-pyscf
 ```
 
-> **Dependencies:** PySCF, OpenFermion, SciPy, NumPy, and the Qoro runtime. No compiler needed — pre-built wheels for Linux and macOS (x86_64, arm64). Fully functional on CPU-only machines; no GPU required to install or run.
+> **Dependencies:** PySCF, OpenFermion, SciPy, NumPy, and the Maestro runtime. No compiler needed — pre-built wheels for Linux and macOS (x86_64, arm64). Fully functional on CPU-only machines; no GPU required to install or run.
 
 ## Quick Start — CASCI with VQE
 
@@ -175,7 +175,7 @@ export MAESTRO_LICENSE_KEY="XXXX-XXXX-XXXX-XXXX"
 ## Features
 
 - **Works on CPU out of the box** — no GPU or license needed to get started
-- **GPU-accelerated** statevector & MPS simulation via Qoro's CUDA backend (with license)
+- **GPU-accelerated** statevector & MPS simulation via Maestro's CUDA backend (with license)
 - **Drop-in PySCF solver** — implements the full `fcisolver` protocol (`kernel`, `make_rdm1`, `make_rdm1s`, `make_rdm12`, `make_rdm12s`)
 - **QSCI solver** — Quantum-Selected Configuration Interaction for variational, noise-robust energy estimation beyond raw VQE ([arXiv:2302.11320](https://arxiv.org/abs/2302.11320))
 - **CASCI and CASSCF** support (CASCI recommended; CASSCF works but VQE convergence can be tricky in the macro-iteration loop)
@@ -195,7 +195,7 @@ qoro_pyscf/
 ├── hamiltonian.py      # PySCF integrals → QubitOperator (Jordan-Wigner)
 ├── ansatze.py          # HF initial state, hardware-efficient, UCCSD, UpCCD
 ├── adapt.py            # ADAPT-VQE adaptive circuit growing
-├── expectation.py      # Qoro circuit evaluation wrapper
+├── expectation.py      # Maestro circuit evaluation wrapper
 ├── rdm.py              # RDM reconstruction from VQE circuit
 ├── properties.py       # Dipole moments, natural orbitals
 └── backends.py         # GPU/CPU/MPS backend configuration

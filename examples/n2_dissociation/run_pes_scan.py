@@ -3,11 +3,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Breaking the Triple Bond: N₂ Dissociation with VQE on Qoro
+Breaking the Triple Bond: N₂ Dissociation with VQE on Maestro
 ==============================================================
 
 This script computes the potential energy surface of N₂ along the N–N
-bond stretch using VQE on Qoro. It demonstrates:
+bond stretch using VQE on Maestro. It demonstrates:
 
   1. AVAS-based active-space auto-selection of the 2p valence orbitals
   2. UCCSD-VQE with the Adam optimiser (parameter-shift gradients)
@@ -184,7 +184,7 @@ def run_pes_scan(args):
         backends = ["cpu"]
 
     print("=" * 78)
-    print("  N₂ DISSOCIATION — VQE ON QORO")
+    print("  N₂ DISSOCIATION — VQE ON MAESTRO")
     print(f"  Basis: {args.basis}  |  CAS({nelec},{norb})  |  {n_qubits} qubits")
     if args.taper:
         print(f"  Z₂ tapering: ON (saves ~2 qubits → {n_qubits - 2})")

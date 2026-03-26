@@ -17,7 +17,7 @@
 Example 10 — GPU vs CPU Benchmark (Hydrogen Chains)
 ====================================================
 
-Benchmarks Qoro GPU vs CPU performance on hydrogen chains of increasing
+Benchmarks Maestro GPU vs CPU performance on hydrogen chains of increasing
 size using the UpCCD ansatz.  The active space grows with chain length,
 pushing the system into a regime where GPU acceleration matters.
 
@@ -145,7 +145,7 @@ def main():
         sim_label += f" (bond_dim={args.bond_dim})"
 
     print("=" * 80)
-    print("  QORO GPU vs CPU BENCHMARK — HYDROGEN CHAINS + UpCCD")
+    print("  MAESTRO GPU vs CPU BENCHMARK — HYDROGEN CHAINS + UpCCD")
     print(f"  Simulation: {sim_label}")
     print(f"  Backends:   {', '.join(b.upper() for b in backends)}")
     print(f"  Chains:     {', '.join(f'H{n}' for n in chain_sizes)}")

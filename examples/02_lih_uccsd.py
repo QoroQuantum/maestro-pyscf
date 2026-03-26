@@ -18,7 +18,7 @@ Example 2 — LiH with UCCSD Ansatz
 ==================================
 
 Computes the ground-state energy of lithium hydride (LiH) using the Unitary
-Coupled Cluster Singles and Doubles (UCCSD) ansatz on Qoro.
+Coupled Cluster Singles and Doubles (UCCSD) ansatz on Maestro.
 
 Why UCCSD?
 ----------

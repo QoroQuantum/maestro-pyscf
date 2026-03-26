@@ -35,7 +35,7 @@ the equilibrium geometry.
 What this example shows
 -----------------------
 - Starting from a stretched H₂ (d=1.2 Å), find the equilibrium geometry
-- PySCF drives the nuclear optimisation; Qoro solves the electronic part
+- PySCF drives the nuclear optimisation; Maestro solves the electronic part
 - Compare the optimised bond length with the known value (~0.74 Å)
 
 Usage

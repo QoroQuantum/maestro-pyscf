@@ -145,7 +145,7 @@ def main():
     print("  • χ < max gives approximate results (vs SV column)")
     print("  • χ = max reproduces statevector exactly")
     print("  • For 50+ qubits, statevector is infeasible — MPS is the only option")
-    print("  • Qoro runs MPS on GPU for maximum throughput")
+    print("  • Maestro runs MPS on GPU for maximum throughput")
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 ## `QoroSolver`
 
-The primary class — a PySCF `fcisolver` drop-in that runs VQE on Qoro.
+The primary class — a PySCF `fcisolver` drop-in that runs VQE on Maestro.
 
 ```python
 from qoro_pyscf import QoroSolver
@@ -15,7 +15,7 @@ solver = QoroSolver(
     backend="gpu",                 # "gpu" or "cpu"
     simulation="statevector",      # "statevector" or "mps"
     mps_bond_dim=64,               # MPS bond dimension (if simulation="mps")
-    license_key=None,              # Qoro GPU license key (optional)
+    license_key=None,              # Maestro GPU license key (optional)
     initial_point=None,            # initial parameter vector (optional)
     verbose=True,                  # print VQE progress
     # ADAPT-VQE parameters (only used when ansatz="adapt"):
@@ -123,7 +123,7 @@ cfg = configure_backend(license_key="XXXX-XXXX-XXXX-XXXX")
 
 ## `set_license_key`
 
-Set the Qoro GPU license key programmatically.
+Set the Maestro GPU license key programmatically.
 
 ```python
 from qoro_pyscf import set_license_key

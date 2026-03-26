@@ -24,7 +24,7 @@ python 06_nevpt2.py --gpu
 |---|--------|-------|:------:|-------------|
 | 1 | [01_h2_dissociation.py](01_h2_dissociation.py) | H₂ bond-breaking curve | 4 | PES scan, multi-reference character, VQE vs FCI |
 | 2 | [02_lih_uccsd.py](02_lih_uccsd.py) | LiH with UCCSD ansatz | 4 | Chemistry-motivated ansatz, CASCI |
-| 3 | [03_gpu_vs_cpu.py](03_gpu_vs_cpu.py) | GPU acceleration benchmark | 4 | Backend switching, timing, Qoro speedup |
+| 3 | [03_gpu_vs_cpu.py](03_gpu_vs_cpu.py) | GPU acceleration benchmark | 4 | Backend switching, timing, Maestro speedup |
 
 ### Simulation Backends
 

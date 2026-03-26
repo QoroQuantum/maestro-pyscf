@@ -97,13 +97,13 @@ def main():
     print(f"  │  E(HF) = {hf_obj.e_tot:+.10f} Ha")
 
     # ─────────────────────────────────────────────────────────────────────
-    # Step 3: CASCI with VQE on Qoro
+    # Step 3: CASCI with VQE on Maestro
     # ─────────────────────────────────────────────────────────────────────
     norb = 3   # Be 2s, 2pz + H 1s orbitals
     nelec = 2
 
     print(f"  │")
-    print(f"  ├─ Step 3: CASCI + VQE on Qoro ({backend.upper()})")
+    print(f"  ├─ Step 3: CASCI + VQE on Maestro ({backend.upper()})")
     print(f"  │  Active space: ({nelec}e, {norb}o) → {2*norb} qubits")
 
     cas = mcscf.CASCI(hf_obj, norb, nelec)
@@ -177,7 +177,7 @@ def main():
     print(f"     {'─' * 52}")
     entries = [
         ("HF", hf_obj.e_tot),
-        ("CASCI+VQE (Qoro)", casci_e),
+        ("CASCI+VQE (Maestro)", casci_e),
     ]
     if nevpt2_e is not None:
         entries.append(("CASCI + NEVPT2", nevpt2_e))

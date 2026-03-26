@@ -219,7 +219,7 @@ class VQDSolver:
         return get_state_probabilities(circuit, self._config)
 
     def _compute_overlap(self, circuit_a: "QuantumCircuit", circuit_b: "QuantumCircuit") -> float:
-        """Compute |⟨ψ_a|ψ_b⟩|² using the best available Qoro API.
+        """Compute |⟨ψ_a|ψ_b⟩|² using the best available Maestro API.
 
         Delegates to :func:`compute_overlap`, which uses
         ``maestro.inner_product`` when available and falls back to
@@ -342,7 +342,7 @@ class VQDSolver:
                     "`custom_ansatz_n_params` must be set."
                 )
 
-        # --- Configure Qoro backend ---
+        # --- Configure Maestro backend ---
         self._config = configure_backend(
             use_gpu=(s.backend == "gpu"),
             simulation=s.simulation,
@@ -356,7 +356,7 @@ class VQDSolver:
                 "VQD Solver: Backend=%s, Qubits=%d, Ansatz=%s, States=%d",
                 self._config.label, n_qubits, s.ansatz, total_states,
             )
-            print(f"\nVQD Solver (Qoro)")
+            print(f"\nVQD Solver (Maestro)")
             print(f"  Active space : ({sum(self._nelec)}e, {norb}o) → {n_qubits} qubits")
             print(f"  Ansatz       : {s.ansatz}")
             print(f"  Backend      : {self._config.label}")

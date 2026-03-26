@@ -15,7 +15,7 @@
 """
 qoro-pyscf
 ==================
-PySCF integration plugin for the Qoro quantum simulator by Qoro Quantum.
+PySCF integration plugin for the Maestro quantum simulator by Qoro Quantum.
 
 Run VQE calculations within PySCF's CASCI/CASSCF framework — works on
 CPU out of the box, with optional GPU acceleration for speed.
