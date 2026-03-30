@@ -128,10 +128,15 @@ STAGES = {
         "norb": 8,
         "nelec": 8,
         "basis": "sto-3g",
-        "ansatz": "upccd",
-        "maxiter": 300,
-        "optimizer": "COBYLA",
+        # ADAPT-VQE with greedy Rotosolve: each ADAPT step adds one
+        # operator and analytically optimises its parameter in just
+        # 3 circuit evaluations.  Fast and accurate.
+        "ansatz": "adapt",
+        "maxiter": 100,
+        "optimizer": "ROTOSOLVE",
         "learning_rate": None,
+        "adapt_greedy": True,
+        "adapt_pool": "d",
         "n_qubits": 16,
         "distances": CN_DISTANCES,
     },
@@ -198,6 +203,8 @@ def run_vqe_point(
     ansatz: str = "uccsd",
     learning_rate: float | None = None,
     previous_params: np.ndarray | None = None,
+    adapt_greedy: bool = False,
+    adapt_pool: str = "sd",
 ) -> dict:
     """Run VQE at one geometry and return results dict."""
     mf = scf.RHF(mol)
@@ -212,7 +219,9 @@ def run_vqe_point(
         optimizer=optimizer,
         maxiter=maxiter,
         backend=backend,
-        verbose=False,
+        verbose=True,
+        adapt_greedy=adapt_greedy,
+        adapt_pool=adapt_pool,
     )
     if learning_rate is not None:
         solver_kwargs["learning_rate"] = learning_rate
@@ -329,6 +338,8 @@ def run_stage(stage_num: int, backends: list[str], quick: bool = False):
                     ansatz=cfg["ansatz"],
                     learning_rate=cfg["learning_rate"],
                     previous_params=prev_params,
+                    adapt_greedy=cfg.get("adapt_greedy", False),
+                    adapt_pool=cfg.get("adapt_pool", "sd"),
                 )
                 results[f"vqe_{backend}_energies"].append(out["energy"])
                 results[f"vqe_{backend}_times"].append(out["wall_time"])
