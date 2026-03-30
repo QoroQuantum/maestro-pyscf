@@ -51,7 +51,7 @@ from pathlib import Path
 import numpy as np
 from pyscf import gto, scf, mcscf
 
-from qoro_maestro_pyscf import MaestroSolver
+from qoro_pyscf import QoroSolver
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -245,7 +245,7 @@ def run_vqe_point(
     if learning_rate is not None:
         solver_kwargs["learning_rate"] = learning_rate
 
-    solver = MaestroSolver(**solver_kwargs)
+    solver = QoroSolver(**solver_kwargs)
 
     # Warm-start from previous geometry
     if previous_params is not None:

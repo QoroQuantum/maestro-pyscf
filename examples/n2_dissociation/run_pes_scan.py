@@ -51,7 +51,7 @@ from pathlib import Path
 import numpy as np
 from pyscf import gto, scf, mcscf, fci
 
-from qoro_maestro_pyscf import MaestroSolver
+from qoro_pyscf import QoroSolver
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -131,7 +131,7 @@ def run_vqe_point(
     cas = mcscf.CASCI(mf, norb, nelec)
     cas.verbose = 0
 
-    solver = MaestroSolver(
+    solver = QoroSolver(
         ansatz=ansatz,
         optimizer=optimizer,
         learning_rate=learning_rate,
@@ -324,7 +324,7 @@ PRESETS = {
 
 def main():
     parser = argparse.ArgumentParser(
-        description="N₂ Dissociation PES — VQE benchmark on Maestro",
+        description="N₂ Dissociation PES — VQE benchmark on Qoro",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Presets:

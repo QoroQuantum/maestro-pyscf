@@ -34,15 +34,15 @@ from scipy.optimize import minimize
 if TYPE_CHECKING:
     from maestro.circuits import QuantumCircuit
 
-from qoro_maestro_pyscf.ansatze import (
+from qoro_pyscf.ansatze import (
     _apply_double_excitation,
     _apply_hf_gates,
     _apply_single_excitation,
     _get_uccsd_excitations,
     _QC,
 )
-from qoro_maestro_pyscf.backends import BackendConfig
-from qoro_maestro_pyscf.expectation import compute_energy
+from qoro_pyscf.backends import BackendConfig
+from qoro_pyscf.expectation import compute_energy
 
 logger = logging.getLogger(__name__)
 
@@ -275,7 +275,7 @@ def run_adapt_vqe(
             # 3 circuit evaluations per step.
             # Frequency depends on gate type: doubles use ry(2θ) → freq=2,
             # singles use ry(θ) → freq=1.
-            from qoro_maestro_pyscf.rotosolve import rotosolve_step
+            from qoro_pyscf.rotosolve import rotosolve_step
 
             last_op = selected_ops[-1]
             freq = 2 if last_op.kind == "double" else 1
@@ -284,7 +284,7 @@ def run_adapt_vqe(
             )
         elif optimizer.upper() == "ROTOSOLVE":
             # Full Rotosolve sweep over all parameters
-            from qoro_maestro_pyscf.rotosolve import rotosolve_sweep
+            from qoro_pyscf.rotosolve import rotosolve_sweep
 
             params, current_energy, _, _ = rotosolve_sweep(
                 cost, params,

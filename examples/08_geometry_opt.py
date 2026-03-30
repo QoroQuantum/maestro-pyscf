@@ -29,7 +29,7 @@ the total energy — this gives the equilibrium bond length.
 
 PySCF's `geomopt` module handles the nuclear gradient loop (using finite
 differences or analytical gradients). At each nuclear geometry, it calls
-CASCI with our MaestroSolver to get the electronic energy. The result is
+CASCI with our QoroSolver to get the electronic energy. The result is
 the equilibrium geometry.
 
 What this example shows
@@ -51,14 +51,14 @@ import numpy as np
 from pyscf import gto, scf, mcscf
 from pyscf.geomopt.geometric_solver import optimize as geo_optimize
 
-from qoro_maestro_pyscf import MaestroSolver
+from qoro_pyscf import QoroSolver
 
 
 def make_casci(mol, backend):
-    """Build a CASCI object with MaestroSolver for the given molecule."""
+    """Build a CASCI object with QoroSolver for the given molecule."""
     hf_obj = scf.RHF(mol).run()
     cas = mcscf.CASCI(hf_obj, 2, 2)
-    cas.fcisolver = MaestroSolver(
+    cas.fcisolver = QoroSolver(
         ansatz="hardware_efficient",
         ansatz_layers=2,
         backend=backend,
@@ -94,7 +94,7 @@ def main():
     print(f"\n  Initial bond length : {initial_d:.3f} Å")
     print(f"  Expected equilibrium: ~0.74 Å")
 
-    # Build CASCI with MaestroSolver
+    # Build CASCI with QoroSolver
     cas = make_casci(mol, backend)
 
     # Run geometry optimisation

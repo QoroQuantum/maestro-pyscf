@@ -33,13 +33,13 @@ We use the UCCSD (Unitary Coupled Cluster Singles and Doubles) ansatz, which nat
 
 ```python
 from pyscf import gto, scf, mcscf
-from qoro_maestro_pyscf import MaestroSolver
+from qoro_pyscf import QoroSolver
 
 mol = gto.M(atom=f"N 0 0 0; N 0 0 {r}", basis="cc-pvdz")
 mf = scf.RHF(mol).run()
 
 cas = mcscf.CASCI(mf, 10, 10)  # CAS(10,10) → 20 qubits
-cas.fcisolver = MaestroSolver(
+cas.fcisolver = QoroSolver(
     ansatz="uccsd",
     optimizer="adam",        # Adam with parameter-shift gradients
     learning_rate=0.01,
@@ -94,7 +94,7 @@ Key observation: the error is **largest near equilibrium** (where the ansatz has
 
 ## Features Used
 
-This example showcases several features of `qoro-maestro-pyscf`:
+This example showcases several features of `qoro-pyscf`:
 
 | Feature | What it does |
 |---------|-------------|

@@ -35,7 +35,7 @@ classical mean-field methods.
 What this example shows
 -----------------------
 - PySCF computes molecular integrals at each geometry
-- MaestroSolver runs a VQE for each bond length
+- QoroSolver runs a VQE for each bond length
 - We compare HF, VQE (Maestro), and exact FCI energies
 - At large bond lengths, VQE tracks FCI while HF diverges
 
@@ -49,7 +49,7 @@ import argparse
 import numpy as np
 
 from pyscf import gto, scf, mcscf
-from qoro_maestro_pyscf import MaestroSolver
+from qoro_pyscf import QoroSolver
 
 
 def main():
@@ -83,7 +83,7 @@ def main():
 
         # VQE on Maestro
         cas_vqe = mcscf.CASCI(hf_obj, 2, 2)
-        cas_vqe.fcisolver = MaestroSolver(
+        cas_vqe.fcisolver = QoroSolver(
             ansatz="uccsd",
             backend=backend,
             maxiter=300,

@@ -28,7 +28,7 @@ import numpy as np
 if TYPE_CHECKING:
     from maestro.circuits import QuantumCircuit
 
-from qoro_maestro_pyscf.backends import BackendConfig
+from qoro_pyscf.backends import BackendConfig
 
 
 def evaluate_expectation(

@@ -48,7 +48,7 @@ import time
 
 import numpy as np
 from pyscf import gto, scf, mcscf
-from qoro_maestro_pyscf import MaestroSolver
+from qoro_pyscf import QoroSolver
 
 
 def main():
@@ -105,7 +105,7 @@ def main():
     )
 
     cas_sv = mcscf.CASCI(hf_obj, norb, nelec)
-    cas_sv.fcisolver = MaestroSolver(
+    cas_sv.fcisolver = QoroSolver(
         ansatz="hardware_efficient",
         ansatz_layers=n_layers,
         backend=backend,
@@ -122,7 +122,7 @@ def main():
     # --- MPS at various bond dimensions ---
     for chi in [4, 8, 16, 32, 64]:
         cas_mps = mcscf.CASCI(hf_obj, norb, nelec)
-        cas_mps.fcisolver = MaestroSolver(
+        cas_mps.fcisolver = QoroSolver(
             ansatz="hardware_efficient",
             ansatz_layers=n_layers,
             backend=backend,

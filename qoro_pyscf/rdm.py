@@ -45,8 +45,8 @@ if TYPE_CHECKING:
 
 from openfermion import FermionOperator, jordan_wigner
 
-from qoro_maestro_pyscf.backends import BackendConfig
-from qoro_maestro_pyscf.expectation import evaluate_expectation
+from qoro_pyscf.backends import BackendConfig
+from qoro_pyscf.expectation import evaluate_expectation
 
 
 # ──────────────────────────────────────────────────────────────────────────────

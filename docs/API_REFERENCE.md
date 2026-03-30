@@ -1,13 +1,13 @@
 # API Reference
 
-## `MaestroSolver`
+## `QoroSolver`
 
 The primary class — a PySCF `fcisolver` drop-in that runs VQE on Maestro.
 
 ```python
-from qoro_maestro_pyscf import MaestroSolver
+from qoro_pyscf import QoroSolver
 
-solver = MaestroSolver(
+solver = QoroSolver(
     ansatz="hardware_efficient",   # "hardware_efficient", "uccsd", "upccd", or "adapt"
     ansatz_layers=2,               # layers for hardware-efficient ansatz
     optimizer="COBYLA",            # any scipy.optimize method
@@ -29,19 +29,19 @@ solver = MaestroSolver(
 
 ```python
 from pyscf import gto, scf, mcscf
-from qoro_maestro_pyscf import MaestroSolver
+from qoro_pyscf import QoroSolver
 
 mol = gto.M(atom="H 0 0 0; H 0 0 0.74", basis="sto-3g")
 hf  = scf.RHF(mol).run()
 
 # CASCI
 cas = mcscf.CASCI(hf, 2, 2)
-cas.fcisolver = MaestroSolver(ansatz="uccsd")
+cas.fcisolver = QoroSolver(ansatz="uccsd")
 cas.run()
 
 # CASSCF (orbital optimisation using RDMs)
 cas = mcscf.CASSCF(hf, 2, 2)
-cas.fcisolver = MaestroSolver(ansatz="hardware_efficient", ansatz_layers=3)
+cas.fcisolver = QoroSolver(ansatz="hardware_efficient", ansatz_layers=3)
 cas.run()
 ```
 
@@ -56,12 +56,58 @@ cas.run()
 
 ---
 
-## `configure_backend`
+## `QSCISolver`
 
-Create a backend configuration manually (used internally by `MaestroSolver`, but available for advanced use).
+Quantum-Selected Configuration Interaction — wraps a `QoroSolver` for state preparation, then classically diagonalizes in the quantum-selected subspace. Reference: [arXiv:2302.11320](https://arxiv.org/abs/2302.11320).
 
 ```python
-from qoro_maestro_pyscf import configure_backend
+from qoro_pyscf import QSCISolver, QoroSolver
+
+solver = QSCISolver(
+    inner_solver=QoroSolver(ansatz="uccsd"),  # VQE state preparation
+    n_samples=500,              # max determinants in CI subspace
+    probability_threshold=1e-8, # min probability for configuration selection
+    verbose=True,               # print QSCI progress
+)
+```
+
+### Usage with PySCF
+
+```python
+from pyscf import gto, scf, mcscf
+from qoro_pyscf import QoroSolver, QSCISolver
+
+mol = gto.M(atom="Li 0 0 0; H 0 0 1.6", basis="sto-3g", verbose=0)
+hf = scf.RHF(mol).run()
+
+cas = mcscf.CASCI(hf, 3, 2)
+inner = QoroSolver(ansatz="uccsd", maxiter=100)
+cas.fcisolver = QSCISolver(inner_solver=inner)
+e_qsci = cas.kernel()[0]
+```
+
+### Attributes (after `kernel` runs)
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `converged` | `bool` | Whether QSCI completed successfully |
+| `vqe_energy` | `float` | Inner VQE energy (before QSCI improvement) |
+| `qsci_energy` | `float` | Final QSCI energy |
+| `qsci_time` | `float` | Wall-clock time for full QSCI pipeline (seconds) |
+| `n_determinants` | `int` | Size of the CI subspace |
+
+### RDM Interface
+
+`QSCISolver` implements the full PySCF `fcisolver` RDM protocol: `make_rdm1`, `make_rdm1s`, `make_rdm12`, `make_rdm12s`, `spin_square`. All RDMs are computed classically from the selected-CI eigenvector.
+
+---
+
+## `configure_backend`
+
+Create a backend configuration manually (used internally by `QoroSolver`, but available for advanced use).
+
+```python
+from qoro_pyscf import configure_backend
 
 # GPU statevector
 cfg = configure_backend(use_gpu=True, simulation="statevector")
@@ -80,7 +126,7 @@ cfg = configure_backend(license_key="XXXX-XXXX-XXXX-XXXX")
 Set the Maestro GPU license key programmatically.
 
 ```python
-from qoro_maestro_pyscf import set_license_key
+from qoro_pyscf import set_license_key
 
 set_license_key("XXXX-XXXX-XXXX-XXXX")
 # Equivalent to: os.environ["MAESTRO_LICENSE_KEY"] = "XXXX-XXXX-XXXX-XXXX"
@@ -108,7 +154,7 @@ These are not part of the public API but are documented for contributors.
 ### `hamiltonian`
 
 ```python
-from qoro_maestro_pyscf.hamiltonian import (
+from qoro_pyscf.hamiltonian import (
     integrals_to_qubit_hamiltonian,  # (h1, h2, norb) → (QubitOperator, offset)
     qubit_op_to_pauli_list,          # QubitOperator → (id_coeff, labels, coeffs)
 )
@@ -117,7 +163,7 @@ from qoro_maestro_pyscf.hamiltonian import (
 ### `ansatze`
 
 ```python
-from qoro_maestro_pyscf.ansatze import (
+from qoro_pyscf.ansatze import (
     hartree_fock_circuit,             # (n_qubits, nelec) → QuantumCircuit
     hardware_efficient_ansatz,        # (params, n_qubits, n_layers) → QuantumCircuit
     hardware_efficient_param_count,   # (n_qubits, n_layers) → int
@@ -131,7 +177,7 @@ from qoro_maestro_pyscf.ansatze import (
 ### `expectation`
 
 ```python
-from qoro_maestro_pyscf.expectation import (
+from qoro_pyscf.expectation import (
     evaluate_expectation,    # (circuit, pauli_labels, config) → np.ndarray
     compute_energy,          # (circuit, offset, labels, coeffs, config) → float
     get_state_probabilities, # (circuit, config) → np.ndarray
@@ -142,7 +188,7 @@ from qoro_maestro_pyscf.expectation import (
 ### `rdm`
 
 ```python
-from qoro_maestro_pyscf.rdm import (
+from qoro_pyscf.rdm import (
     compute_1rdm_spatial,   # (circuit, n_qubits, config) → (rdm1_a, rdm1_b)
     compute_2rdm_spatial,   # (circuit, n_qubits, config) → (rdm2_aa, rdm2_ab, rdm2_bb)
     trace_spin_rdm1,        # (rdm1_a, rdm1_b) → rdm1

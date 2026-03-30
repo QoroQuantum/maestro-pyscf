@@ -77,8 +77,8 @@ def set_license_key(key: str) -> None:
 
     Examples
     --------
-    >>> from qoro_maestro_pyscf import configure_backend
-    >>> from qoro_maestro_pyscf.backends import set_license_key
+    >>> from qoro_pyscf import configure_backend
+    >>> from qoro_pyscf.backends import set_license_key
     >>> set_license_key("XXXX-XXXX-XXXX-XXXX")
     >>> cfg = configure_backend()  # Will now use GPU with your license
     """

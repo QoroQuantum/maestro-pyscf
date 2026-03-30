@@ -1,4 +1,4 @@
-# Full Quantum Chemistry Workflow with Maestro
+# Full Quantum Chemistry Workflow with Qoro
 
 A complete, publication-quality quantum chemistry pipeline running on Maestro's GPU-accelerated quantum simulator.
 
@@ -79,9 +79,9 @@ jupyter notebook full_workflow.ipynb
 ## Key Takeaways
 
 1. **CASSCF captures static correlation** — the orbital optimisation lowers the energy beyond CASCI
-2. **NEVPT2 is free** — it uses the RDMs from the VQE, computed by Maestro
+2. **NEVPT2 is free** — it uses the RDMs from the VQE, computed by Qoro
 3. **Properties work** — dipole moments, natural occupations, all from the VQE wavefunction
-4. **Same pipeline as classical** — a chemist can drop in `MaestroSolver` without changing their workflow
+4. **Same pipeline as classical** — a chemist can drop in `QoroSolver` without changing their workflow
 
 ## Files
 
