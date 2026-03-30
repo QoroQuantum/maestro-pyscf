@@ -122,6 +122,23 @@ def build_butyronitrile(cn_distance: float, basis: str = "sto-3g") -> gto.Mole:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 STAGES = {
+    0: {
+        "label": "Stage 0 — CPU Quick",
+        "description": "Compact active space: CAS(4,4)/STO-3G = 8 qubits (fast CPU demo)",
+        "norb": 4,
+        "nelec": 4,
+        "basis": "sto-3g",
+        # UCCSD with COBYLA: ~2 min per geometry on CPU, good for local demos.
+        # Uses a smaller active space to keep runtime practical without a GPU.
+        "ansatz": "uccsd",
+        "maxiter": 400,
+        "optimizer": "COBYLA",
+        "learning_rate": None,
+        "adapt_greedy": False,
+        "adapt_pool": "sd",
+        "n_qubits": 8,
+        "distances": CN_DISTANCES,
+    },
     1: {
         "label": "Stage 1 — Baseline",
         "description": "Standard active space: CAS(8,8)/STO-3G = 16 qubits",
@@ -131,6 +148,8 @@ STAGES = {
         # ADAPT-VQE with greedy Rotosolve: each ADAPT step adds one
         # operator and analytically optimises its parameter in just
         # 3 circuit evaluations.  Fast and accurate.
+        # NOTE: gradient screening (784 operators × 2 evals) takes ~10 min/step
+        # on CPU — run with --gpu for practical runtimes.
         "ansatz": "adapt",
         "maxiter": 100,
         "optimizer": "ROTOSOLVE",
@@ -412,16 +431,18 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Stages:
-  --stage 1     Baseline:  CAS(8,8)/STO-3G = 16 qubits
-  --stage 2     Extended:  CAS(14,14)/6-31G* = 28 qubits
-  --stage both  Run both stages sequentially
+  --stage 0     CPU quick:  CAS(4,4)/STO-3G = 8 qubits  (~2 min/point on CPU)
+  --stage 1     Baseline:   CAS(8,8)/STO-3G = 16 qubits  (GPU recommended)
+  --stage 2     Extended:   CAS(14,14)/6-31G* = 28 qubits (GPU required)
+  --stage both  Run stages 1 + 2 sequentially
 
 Examples:
-  python run_cn_dissociation.py --stage 1 --cpu          # Quick CPU test
-  python run_cn_dissociation.py --stage 1 --both         # GPU vs CPU @ 16 qubits
+  python run_cn_dissociation.py --stage 0 --cpu          # Fast CPU demo (~20 min)
+  python run_cn_dissociation.py --stage 0 --cpu --quick  # 3-point test (~6 min)
+  python run_cn_dissociation.py --stage 1 --gpu          # Baseline, GPU
+  python run_cn_dissociation.py --stage 1 --both         # GPU vs CPU comparison
   python run_cn_dissociation.py --stage 2 --gpu          # Big run, GPU only
   python run_cn_dissociation.py --stage both --gpu        # Full demo
-  python run_cn_dissociation.py --stage 1 --cpu --quick   # 3-point test
 """,
     )
 
@@ -433,8 +454,8 @@ Examples:
 
     # Stage
     parser.add_argument("--stage", type=str, required=True,
-                        choices=["1", "2", "both"],
-                        help="Which stage to run: 1 (match), 2 (outdo), both")
+                        choices=["0", "1", "2", "both"],
+                        help="Which stage to run: 0 (cpu-quick), 1 (match), 2 (outdo), both")
 
     # Options
     parser.add_argument("--quick", action="store_true",
